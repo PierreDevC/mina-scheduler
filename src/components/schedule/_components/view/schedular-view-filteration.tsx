@@ -39,7 +39,7 @@ export default function SchedulerViewFilteration({
   classNames?: ClassNames;
 }) {
   const { setOpen } = useModal();
-  const [activeView, setActiveView] = useState<string>("day");
+  const [activeView, setActiveView] = useState<string>("month");
   const [clientSide, setClientSide] = useState(false);
 
   console.log("activeView", activeView);
@@ -120,7 +120,12 @@ export default function SchedulerViewFilteration({
   // Set initial active view
   useEffect(() => {
     if (viewsSelector?.length) {
-      setActiveView(viewsSelector[0]);
+      // Prioritize month view if available, otherwise use the first available view
+      if (viewsSelector.includes("month")) {
+        setActiveView("month");
+      } else {
+        setActiveView(viewsSelector[0]);
+      }
     }
   }, []);
 
