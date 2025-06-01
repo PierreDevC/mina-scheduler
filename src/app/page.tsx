@@ -1,18 +1,12 @@
 "use client";
 
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { SchedulerProvider } from "@/providers/schedular-provider";
-import SchedulerWrapper from "@/components/schedule/_components/view/schedular-view-filteration";
 import Navbar from "@/components/landing/navbar";
 import HeroSection from "@/components/landing/hero-section";
 
-
 export default function Home() {
-  const [showCalendar, setShowCalendar] = useState(false);
-
   return (
     <main className="min-h-screen">
       <Navbar />
@@ -135,13 +129,15 @@ export default function Home() {
               transition={{ duration: 0.5, delay: 0.2 }}
               viewport={{ once: true }}
             >
-              <Button 
-                size="lg" 
-                variant="secondary"
-                className="bg-white text-blue-600 hover:bg-gray-100"
-              >
-                Commencer gratuitement
-              </Button>
+              <Link href="/auth/register">
+                <Button 
+                  size="lg" 
+                  variant="secondary"
+                  className="bg-white text-blue-600 hover:bg-gray-100"
+                >
+                  Commencer gratuitement
+                </Button>
+              </Link>
               <Button 
                 size="lg" 
                 variant="outline"
@@ -153,59 +149,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-
-      {/* Calendar Modal */}
-      <AnimatePresence>
-        {showCalendar && (
-          <motion.div
-            onClick={() => setShowCalendar(false)}
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          >
-            <motion.div
-              className="bg-white dark:bg-slate-900 rounded-xl w-full max-w-[1400px] max-h-[90vh] overflow-hidden shadow-2xl"
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              transition={{ type: "spring", damping: 25, stiffness: 300 }}
-            >
-              <div className="flex justify-between items-center p-6 border-b border-gray-200 dark:border-gray-700">
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                  Démo CalendApp
-                </h2>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setShowCalendar(false)}
-                  className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-                >
-                  Fermer
-                </Button>
-              </div>
-              <div
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                }}
-                className="p-6"
-              >
-                <SchedulerProvider weekStartsOn="monday">
-                  <SchedulerWrapper
-                    stopDayEventSummary={true}
-                    classNames={{
-                      tabs: {
-                        panel: "p-0",
-                      },
-                    }}
-                  />
-                </SchedulerProvider>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </main>
   );
 }

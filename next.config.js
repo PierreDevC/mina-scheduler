@@ -7,9 +7,9 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-  experimental: {
-    turbo: false
-  }
+  images: {
+    domains: ['images.clerk.dev'],
+  },
 };
 
 module.exports = nextConfig;

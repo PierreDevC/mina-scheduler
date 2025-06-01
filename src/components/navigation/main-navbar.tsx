@@ -10,8 +10,11 @@ import {
   CalendarDays, 
   Contact,
   Menu,
-  X
+  X,
+  LogOut,
+  User
 } from "lucide-react";
+import { UserButton, SignedIn, SignedOut, SignInButton, useUser } from "@clerk/nextjs";
 
 interface NavItem {
   id: string;
@@ -64,6 +67,7 @@ export default function MainNavbar({ activeTab, onTabChange, className, onNavbar
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isNavbarAtBottom, setIsNavbarAtBottom] = useState(false);
   const { scrollY } = useScroll();
+  const { user } = useUser();
 
   useEffect(() => {
     const unsubscribe = scrollY.on("change", (latest) => {
@@ -84,7 +88,15 @@ export default function MainNavbar({ activeTab, onTabChange, className, onNavbar
   return (
     <>
       {/* Desktop Navbar */}
-      <div className={cn("w-full justify-center py-6 hidden md:flex", className)}>
+      <div className={cn("w-full justify-between items-center py-6 hidden md:flex px-6", className)}>
+        {/* Logo/Titre */}
+        <div className="flex items-center space-x-2">
+          <h1 className="text-xl font-bold text-gray-900 dark:text-white">
+            CalendApp
+          </h1>
+        </div>
+
+        {/* Navigation centrale */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -105,7 +117,6 @@ export default function MainNavbar({ activeTab, onTabChange, className, onNavbar
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
-                {/* Active background */}
                 {activeTab === item.id && (
                   <motion.div
                     layoutId="activeTabDesktop"
@@ -117,8 +128,6 @@ export default function MainNavbar({ activeTab, onTabChange, className, onNavbar
                     }}
                   />
                 )}
-                
-                {/* Icon and Text */}
                 <div className="relative z-10 flex items-center space-x-2">
                   {item.icon}
                   <span className="hidden lg:inline">{item.label}</span>
@@ -128,6 +137,35 @@ export default function MainNavbar({ activeTab, onTabChange, className, onNavbar
             ))}
           </div>
         </motion.div>
+
+        {/* Section utilisateur */}
+        <div className="flex items-center space-x-4">
+          <SignedOut>
+            <SignInButton mode="modal">
+              <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-colors">
+                Se connecter
+              </button>
+            </SignInButton>
+          </SignedOut>
+          
+          <SignedIn>
+            <div className="flex items-center space-x-3">
+              {user && (
+                <span className="text-sm text-gray-600 dark:text-gray-400">
+                  Bonjour, {user.firstName || user.emailAddresses[0]?.emailAddress}
+                </span>
+              )}
+              <UserButton 
+                afterSignOutUrl="/"
+                appearance={{
+                  elements: {
+                    avatarBox: "w-10 h-10",
+                  }
+                }}
+              />
+            </div>
+          </SignedIn>
+        </div>
       </div>
 
       {/* Mobile Navbar */}
@@ -156,24 +194,37 @@ export default function MainNavbar({ activeTab, onTabChange, className, onNavbar
               isNavbarAtBottom ? "border-t shadow-lg" : "border-b"
             )}
             layout
-            transition={{
-              type: "spring",
-              stiffness: 300,
-              damping: 30
-            }}
           >
             <AnimatePresence mode="wait">
               {!isNavbarAtBottom ? (
-                <motion.h1 
-                  key="title"
-                  className="text-xl font-bold text-gray-900 dark:text-white"
+                <motion.div 
+                  key="header"
+                  className="flex items-center justify-between w-full"
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -20 }}
-                  transition={{ duration: 0.3 }}
                 >
-                  CalendApp
-                </motion.h1>
+                  <h1 className="text-xl font-bold text-gray-900 dark:text-white">
+                    CalendApp
+                  </h1>
+                  
+                  <div className="flex items-center space-x-2">
+                    <SignedIn>
+                      <UserButton afterSignOutUrl="/" />
+                    </SignedIn>
+                    
+                    <button
+                      onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                      className="p-2 rounded-lg bg-white dark:bg-gray-800 shadow-lg border border-gray-200 dark:border-gray-600"
+                    >
+                      {isMobileMenuOpen ? (
+                        <X className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+                      ) : (
+                        <Menu className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+                      )}
+                    </button>
+                  </div>
+                </motion.div>
               ) : (
                 <motion.div
                   key="bottom-nav"
@@ -181,7 +232,6 @@ export default function MainNavbar({ activeTab, onTabChange, className, onNavbar
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: 20 }}
-                  transition={{ duration: 0.3, delay: 0.2 }}
                 >
                   {navItems.map((item) => (
                     <motion.button
@@ -190,25 +240,16 @@ export default function MainNavbar({ activeTab, onTabChange, className, onNavbar
                       className={cn(
                         "relative flex flex-col items-center space-y-1 px-3 py-2 rounded-lg transition-colors duration-200",
                         activeTab === item.id
-                          ? "text-black dark:text-white hover:text-black dark:hover:text-white"
+                          ? "text-black dark:text-white"
                           : "text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
                       )}
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
                     >
-                      {/* Active background */}
                       {activeTab === item.id && (
                         <motion.div
                           layoutId="activeTabBottomAnimated"
                           className="absolute inset-0 bg-gray-100 dark:bg-gray-700 rounded-lg"
-                          transition={{
-                            type: "spring",
-                            stiffness: 500,
-                            damping: 30,
-                          }}
                         />
                       )}
-                      
                       <div className="relative z-10 flex flex-col items-center space-y-1">
                         {item.icon}
                         <span className="text-xs font-medium">{item.shortLabel}</span>
@@ -218,34 +259,16 @@ export default function MainNavbar({ activeTab, onTabChange, className, onNavbar
                 </motion.div>
               )}
             </AnimatePresence>
-            
-            {!isNavbarAtBottom && (
-              <motion.button
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="p-2 rounded-lg bg-white dark:bg-gray-800 shadow-lg border border-gray-200 dark:border-gray-600"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                animate={{ opacity: isNavbarAtBottom ? 0 : 1 }}
-                transition={{ duration: 0.3 }}
-              >
-                {isMobileMenuOpen ? (
-                  <X className="h-5 w-5 text-gray-600 dark:text-gray-400" />
-                ) : (
-                  <Menu className="h-5 w-5 text-gray-600 dark:text-gray-400" />
-                )}
-              </motion.button>
-            )}
           </motion.div>
         </motion.div>
 
-        {/* Mobile Menu */}
+        {/* Menu mobile */}
         <AnimatePresence>
           {isMobileMenuOpen && !isNavbarAtBottom && (
             <motion.div
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.3 }}
               className="overflow-hidden bg-white dark:bg-gray-800 mx-4 rounded-xl shadow-xl border border-gray-200 dark:border-gray-600"
             >
               <div className="p-2">
@@ -259,38 +282,41 @@ export default function MainNavbar({ activeTab, onTabChange, className, onNavbar
                     className={cn(
                       "relative w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-colors duration-200",
                       activeTab === item.id
-                        ? "bg-black text-white hover:text-white"
-                        : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white"
+                        ? "bg-black text-white"
+                        : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700"
                     )}
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.3, delay: index * 0.1 }}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
+                    transition={{ delay: index * 0.1 }}
                   >
                     {item.icon}
                     <span className="font-medium">{item.label}</span>
-                    
-                    {/* Active indicator */}
-                    {activeTab === item.id && (
-                      <motion.div
-                        layoutId="activeTabMobile"
-                        className="absolute right-3 w-2 h-2 bg-white rounded-full"
-                        transition={{
-                          type: "spring",
-                          stiffness: 500,
-                          damping: 30,
-                        }}
-                      />
-                    )}
                   </motion.button>
                 ))}
+                
+                {/* Section auth dans le menu mobile */}
+                <div className="border-t border-gray-200 dark:border-gray-600 mt-2 pt-2">
+                  <SignedOut>
+                    <SignInButton mode="redirect">
+                      <button className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-900/20">
+                        <User className="h-4 w-4" />
+                        <span className="font-medium">Se connecter</span>
+                      </button>
+                    </SignInButton>
+                  </SignedOut>
+                  
+                  <SignedIn>
+                    {user && (
+                      <div className="px-4 py-2 text-sm text-gray-600 dark:text-gray-400">
+                        Connecté en tant que {user.firstName || user.emailAddresses[0]?.emailAddress}
+                      </div>
+                    )}
+                  </SignedIn>
+                </div>
               </div>
             </motion.div>
           )}
         </AnimatePresence>
-
-
       </div>
     </>
   );

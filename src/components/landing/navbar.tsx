@@ -5,9 +5,11 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Menu, X, Calendar } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { UserButton, SignedIn, SignedOut, SignInButton, useUser } from "@clerk/nextjs";
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
+  const { user } = useUser();
 
   return (
     <nav className="fixed top-0 w-full z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-800">
@@ -29,6 +31,20 @@ export default function Navbar() {
             >
               Accueil
             </Link>
+            <SignedIn>
+              <Link
+                href="/dashboard"
+                className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+              >
+                Dashboard
+              </Link>
+              <Link
+                href="/app"
+                className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+              >
+                Calendrier
+              </Link>
+            </SignedIn>
             <Link
               href="/features"
               className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
@@ -49,15 +65,34 @@ export default function Navbar() {
             </Link>
           </div>
 
-
           {/* Desktop CTA Buttons */}
           <div className="hidden md:flex items-center space-x-4">
-            <Link href="/auth/login">
-              <Button variant="ghost">Se connecter</Button>
-            </Link>
-            <Link href="/auth/register">
-              <Button>Commencer</Button>
-            </Link>
+            <SignedOut>
+              <SignInButton mode="modal">
+                <Button variant="ghost">Se connecter</Button>
+              </SignInButton>
+              <Link href="/auth/register">
+                <Button>Commencer</Button>
+              </Link>
+            </SignedOut>
+            
+            <SignedIn>
+              <div className="flex items-center space-x-3">
+                {user && (
+                  <span className="text-sm text-gray-600 dark:text-gray-400">
+                    Bonjour, {user.firstName || user.emailAddresses[0]?.emailAddress}
+                  </span>
+                )}
+                <UserButton 
+                  afterSignOutUrl="/"
+                  appearance={{
+                    elements: {
+                      avatarBox: "w-8 h-8",
+                    }
+                  }}
+                />
+              </div>
+            </SignedIn>
           </div>
 
           {/* Mobile menu button */}
@@ -90,6 +125,24 @@ export default function Navbar() {
               >
                 Accueil
               </Link>
+              
+              <SignedIn>
+                <Link
+                  href="/dashboard"
+                  className="block text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                  onClick={() => setIsOpen(false)}
+                >
+                  Dashboard
+                </Link>
+                <Link
+                  href="/app"
+                  className="block text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                  onClick={() => setIsOpen(false)}
+                >
+                  Calendrier
+                </Link>
+              </SignedIn>
+              
               <Link
                 href="/features"
                 className="block text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
@@ -111,11 +164,39 @@ export default function Navbar() {
               >
                 Contact
               </Link>
+              
               <div className="pt-4 space-y-2">
-                <Button variant="ghost" className="w-full justify-start">
-                  Se connecter
-                </Button>
-                <Button className="w-full">Commencer</Button>
+                <SignedOut>
+                  <SignInButton mode="redirect">
+                    <Button variant="ghost" className="w-full justify-start">
+                      Se connecter
+                    </Button>
+                  </SignInButton>
+                  <Link href="/auth/register">
+                    <Button className="w-full">Commencer</Button>
+                  </Link>
+                </SignedOut>
+                
+                <SignedIn>
+                  <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                    <div>
+                      {user && (
+                        <p className="text-sm font-medium text-gray-900 dark:text-white">
+                          {user.firstName || user.emailAddresses[0]?.emailAddress}
+                        </p>
+                      )}
+                      <p className="text-xs text-gray-500 dark:text-gray-400">Connecté</p>
+                    </div>
+                    <UserButton 
+                      afterSignOutUrl="/"
+                      appearance={{
+                        elements: {
+                          avatarBox: "w-10 h-10",
+                        }
+                      }}
+                    />
+                  </div>
+                </SignedIn>
               </div>
             </div>
           </motion.div>
