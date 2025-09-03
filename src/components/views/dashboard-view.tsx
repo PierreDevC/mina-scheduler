@@ -56,7 +56,11 @@ const itemVariants = {
   visible: { opacity: 1, y: 0 },
 };
 
-export default function DashboardView() {
+interface DashboardViewProps {
+  onNavigate?: (tab: string) => void;
+}
+
+export default function DashboardView({ onNavigate }: DashboardViewProps = {}) {
   return (
     <motion.div
       variants={containerVariants}
@@ -150,14 +154,19 @@ export default function DashboardView() {
               Nouveau événement
             </Button>
             <Button className="w-full justify-start" variant="outline" size="lg">
-              <Users className="mr-3 h-4 w-4" />
-              Inviter des membres
-            </Button>
-            <Button className="w-full justify-start" variant="outline" size="lg">
               <BarChart3 className="mr-3 h-4 w-4" />
               Voir les statistiques
             </Button>
             <Button className="w-full justify-start" variant="outline" size="lg">
+              <Users className="mr-3 h-4 w-4" />
+              Inviter des membres
+            </Button>
+            <Button 
+              className="w-full justify-start" 
+              variant="outline" 
+              size="lg"
+              onClick={() => onNavigate?.("settings")}
+            >
               <Settings className="mr-3 h-4 w-4" />
               Paramètres
             </Button>

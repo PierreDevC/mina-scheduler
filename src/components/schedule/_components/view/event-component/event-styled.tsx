@@ -3,10 +3,11 @@
 import React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useModal } from "@/providers/modal-context";
 import AddEventModal from "@/components/schedule/_modals/add-event-modal";
 import { Event, CustomEventModal } from "@/types";
-import { TrashIcon, CalendarIcon, ClockIcon } from "lucide-react";
+import { TrashIcon, CalendarIcon, ClockIcon, Users } from "lucide-react";
 import { useScheduler } from "@/providers/schedular-provider";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -92,6 +93,7 @@ export default function EventStyled({
       async () => {
         return {
           ...event,
+          invitedPeople: event.invitedPeople || [],
         };
       }
     );
@@ -140,6 +142,7 @@ export default function EventStyled({
               endDate: event?.endDate,
               description: event?.description,
               variant: event?.variant,
+              invitedPeople: event?.invitedPeople,
             });
           }}
         >
@@ -156,6 +159,7 @@ export default function EventStyled({
               endDate: event?.endDate,
               description: event?.description,
               variant: event?.variant,
+              invitedPeople: event?.invitedPeople,
             });
           }}
           className={cn(
@@ -190,6 +194,36 @@ export default function EventStyled({
                   <ClockIcon className="mr-1 h-3 w-3" />
                   {formatDate(event?.endDate)}
                 </div>
+                
+                {/* Display invited people */}
+                {event?.invitedPeople && event.invitedPeople.length > 0 && (
+                  <div className="flex items-center mt-2">
+                    <Users className="mr-1 h-3 w-3" />
+                    <div className="flex items-center space-x-1">
+                      {event.invitedPeople.slice(0, 3).map((person) => (
+                        <Avatar key={person.id} className="w-5 h-5">
+                          <AvatarImage src={person.avatar} alt={person.name} />
+                          <AvatarFallback className="text-[8px]">
+                            {person.name.split(" ").map(n => n[0]).join("")}
+                          </AvatarFallback>
+                        </Avatar>
+                      ))}
+                      {event.invitedPeople.length > 3 && (
+                        <Badge variant="secondary" className="h-5 text-[8px] px-1">
+                          +{event.invitedPeople.length - 3}
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+            
+            {/* Show invited people count in minimized mode */}
+            {event?.minmized && event?.invitedPeople && event.invitedPeople.length > 0 && (
+              <div className="text-[10px] opacity-80 flex items-center mt-1">
+                <Users className="mr-1 h-2 w-2" />
+                {event.invitedPeople.length}
               </div>
             )}
           </div>

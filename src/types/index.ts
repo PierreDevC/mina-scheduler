@@ -7,6 +7,37 @@ export type IconSvgProps = SVGProps<SVGSVGElement> & {
 
 // SchedulerTypes.ts
 
+// Define person type for invitations
+export interface Person {
+  id: string;
+  name: string;
+  email: string;
+  avatar?: string;
+  department?: string;
+}
+
+// Define availability types
+export interface TimeSlot {
+  startTime: string; // Format: "HH:MM"
+  endTime: string;   // Format: "HH:MM"
+}
+
+export interface AvailabilitySlot {
+  id: string;
+  dayOfWeek: number; // 0 = Sunday, 1 = Monday, etc.
+  timeSlots: TimeSlot[];
+  isRecurring: boolean;
+  specificDate?: Date; // For non-recurring, one-time availability
+}
+
+export interface UserAvailability {
+  id: string;
+  userId: string;
+  availabilitySlots: AvailabilitySlot[];
+  timezone: string;
+  lastUpdated: Date;
+}
+
 // Define event type
 export interface Event {
   id: string;
@@ -15,6 +46,7 @@ export interface Event {
   startDate: Date;
   endDate: Date;
   variant?: Variant;
+  invitedPeople?: Person[];
 }
 
 // Define the state interface for the scheduler
@@ -87,6 +119,15 @@ export const variants = [
 
 export type Variant = (typeof variants)[number];
 
+// Define Zod schema for person validation
+export const personSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  email: z.string().email(),
+  avatar: z.string().optional(),
+  department: z.string().optional(),
+});
+
 // Define Zod schema for form validation
 export const eventSchema = z.object({
   title: z.string().nonempty("Event name is required"),
@@ -95,6 +136,7 @@ export const eventSchema = z.object({
   endDate: z.date(),
   variant: z.enum(["primary", "danger", "success", "warning", "default"]),
   color: z.string().nonempty("Color selection is required"),
+  invitedPeople: z.array(personSchema).optional(),
 });
 
 export type EventFormData = z.infer<typeof eventSchema>;

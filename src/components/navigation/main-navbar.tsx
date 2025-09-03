@@ -9,10 +9,12 @@ import {
   Users, 
   CalendarDays, 
   Contact,
+  Clock,
   Menu,
   X,
   LogOut,
-  User
+  User,
+  Settings
 } from "lucide-react";
 import { UserButton, SignedIn, SignedOut, SignInButton, useUser } from "@clerk/nextjs";
 
@@ -44,6 +46,12 @@ const navItems: NavItem[] = [
     icon: <Calendar className="h-4 w-4" />
   },
   { 
+    id: "availability", 
+    label: "Availability", 
+    shortLabel: "Avail",
+    icon: <Clock className="h-4 w-4" />
+  },
+  { 
     id: "groups", 
     label: "Groups", 
     shortLabel: "Groups",
@@ -60,6 +68,12 @@ const navItems: NavItem[] = [
     label: "Contacts", 
     shortLabel: "Contacts",
     icon: <Contact className="h-4 w-4" />
+  },
+  { 
+    id: "settings", 
+    label: "Settings", 
+    shortLabel: "Settings",
+    icon: <Settings className="h-4 w-4" />
   },
 ];
 

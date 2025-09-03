@@ -15,9 +15,10 @@ import { cn } from "@/lib/utils";
 
 import { useModal } from "@/providers/modal-context";
 import SelectDate from "@/components/schedule/_components/add-event-components/select-date";
+import PeopleSelectorWithAvailability from "@/components/schedule/_components/add-event-components/people-selector-with-availability";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { EventFormData, eventSchema, Variant, Event } from "@/types/index";
+import { EventFormData, eventSchema, Variant, Event, Person } from "@/types/index";
 import { useScheduler } from "@/providers/schedular-provider";
 import { v4 as uuidv4 } from "uuid"; // Use UUID to generate event IDs
 
@@ -30,6 +31,13 @@ export default function AddEventModal({
 
   const [selectedColor, setSelectedColor] = useState<string>(
     getEventColor(data?.variant || "primary")
+  );
+  const [selectedPeople, setSelectedPeople] = useState<Person[]>([]);
+  const [currentStartDate, setCurrentStartDate] = useState<Date>(() => 
+    data?.default?.startDate || new Date()
+  );
+  const [currentEndDate, setCurrentEndDate] = useState<Date>(() => 
+    data?.default?.endDate || new Date()
   );
 
   const typedData = data as { default: Event };
@@ -51,8 +59,21 @@ export default function AddEventModal({
       endDate: new Date(),
       variant: data?.variant || "primary",
       color: data?.color || "blue",
+      invitedPeople: [],
     },
   });
+
+  // For presentation: Use demo dates to show availability
+  useEffect(() => {
+    // Set demo times for availability checking (10 AM to 11 AM today)
+    const demoStart = new Date();
+    demoStart.setHours(10, 0, 0, 0);
+    const demoEnd = new Date();
+    demoEnd.setHours(11, 0, 0, 0);
+    
+    setCurrentStartDate(demoStart);
+    setCurrentEndDate(demoEnd);
+  }, []);  // Run only once on mount
 
   // Reset the form on initialization
   useEffect(() => {
@@ -66,7 +87,11 @@ export default function AddEventModal({
         endDate: eventData.endDate,
         variant: eventData.variant || "primary",
         color: eventData.color || "blue",
+        invitedPeople: eventData.invitedPeople || [],
       });
+      setSelectedPeople(eventData.invitedPeople || []);
+      setCurrentStartDate(eventData.startDate);
+      setCurrentEndDate(eventData.endDate);
     }
   }, [data, reset]);
 
@@ -130,6 +155,7 @@ export default function AddEventModal({
       endDate: formData.endDate,
       variant: formData.variant,
       description: formData.description,
+      invitedPeople: selectedPeople,
     };
 
     if (!typedData?.default?.id) handlers.handleAddEvent(newEvent);
@@ -173,6 +199,16 @@ export default function AddEventModal({
               endDate: data?.default?.endDate || new Date(),
             }}
             setValue={setValue}
+          />
+
+          <PeopleSelectorWithAvailability
+            selectedPeople={selectedPeople}
+            onPeopleChange={(people) => {
+              setSelectedPeople(people);
+              setValue("invitedPeople", people);
+            }}
+            eventStartDate={currentStartDate}
+            eventEndDate={currentEndDate}
           />
 
           <div className="grid gap-2">

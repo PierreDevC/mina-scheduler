@@ -5,9 +5,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import MainNavbar from "@/components/navigation/main-navbar";
 import DashboardView from "@/components/views/dashboard-view";
 import CalendarView from "@/components/views/calendar-view";
+import AvailabilityView from "@/components/views/availability-view";
 import GroupsView from "@/components/views/groups-view";
 import EventsView from "@/components/views/events-view";
 import ContactsView from "@/components/views/contacts-view";
+import SettingsView from "@/components/views/settings-view";
 
 const pageVariants = {
   initial: { 
@@ -52,15 +54,19 @@ export default function AppPage() {
   const renderActiveView = () => {
     switch (activeTab) {
       case "dashboard":
-        return <DashboardView />;
+        return <DashboardView onNavigate={setActiveTab} />;
       case "calendar":
         return <CalendarView />;
+      case "availability":
+        return <AvailabilityView />;
       case "groups":
         return <GroupsView />;
       case "events":
         return <EventsView />;
       case "contacts":
         return <ContactsView />;
+      case "settings":
+        return <SettingsView />;
       default:
         return <CalendarView />;
     }
