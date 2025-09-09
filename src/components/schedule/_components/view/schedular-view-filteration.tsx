@@ -27,7 +27,7 @@ const animationConfig = {
 export default function SchedulerViewFilteration({
   views = {
     views: ["day", "week", "month"],
-    mobileViews: ["day"],
+    mobileViews: ["day", "week", "month"],
   },
   stopDayEventSummary = false,
   CustomComponents,
@@ -139,7 +139,12 @@ export default function SchedulerViewFilteration({
             className={cn("w-full", classNames?.tabs)}
           >
             <div className="flex justify-between items-center mb-4">
-              <TabsList className="grid grid-cols-3">
+              <TabsList className={cn(
+                "grid",
+                viewsSelector?.length === 1 ? "grid-cols-1" :
+                viewsSelector?.length === 2 ? "grid-cols-2" :
+                "grid-cols-3"
+              )}>
                 {viewsSelector?.includes("day") && (
                   <TabsTrigger value="day">
                     {CustomComponents?.customTabs?.CustomDayTab ? (

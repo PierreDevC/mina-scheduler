@@ -342,32 +342,33 @@ export default function WeeklyView({
           transition={{
             opacity: { duration: 0.2 },
           }}
-          className={`grid use-automation-zoom-in grid-cols-8 gap-0`}
+          className={"grid use-automation-zoom-in grid-cols-1 sm:grid-cols-8 gap-0"}
         >
-          <div className="sticky top-0 left-0 z-30 bg-default-100 rounded-tl-lg h-full border-0 flex items-center justify-center bg-primary/10">
+          <div className="hidden sm:flex sticky top-0 left-0 z-30 bg-default-100 rounded-tl-lg h-full border-0 items-center justify-center bg-primary/10">
             <span className="text-xl tracking-tight font-semibold ">
               Week {getters.getWeekNumber(currentDate)}
             </span>
           </div>
 
-          <div className="col-span-7 flex flex-col relative">
+          <div className="col-span-1 sm:col-span-7 flex flex-col relative">
             <div 
-              className="grid gap-0 flex-grow bg-primary/10 rounded-r-lg" 
+              className="grid gap-0 flex-grow bg-primary/10 rounded-r-lg sm:rounded-r-lg rounded-lg overflow-x-auto" 
               style={{ 
-                gridTemplateColumns: colWidth.map(w => `${w}fr`).join(' '),
+                gridTemplateColumns: typeof window !== 'undefined' && window.innerWidth <= 640 ? 'repeat(7, minmax(120px, 1fr))' : colWidth.map(w => `${w}fr`).join(' '),
                 transition: isResizing ? 'none' : 'grid-template-columns 0.3s ease-in-out'
               }}
             >
               {daysOfWeek.map((day, idx) => (
-                <div key={idx} className="relative relative group flex flex-col">
+                <div key={idx} className="relative group flex flex-col">
                   <div className="sticky bg-default-100 top-0 z-20 flex-grow flex items-center justify-center">
-                    <div className="text-center p-4">
-                      <div className="text-lg font-semibold">
-                        {getters.getDayName(day.getDay())}
+                    <div className="text-center p-2 sm:p-4">
+                      <div className="text-sm sm:text-lg font-semibold">
+                        <span className="hidden sm:inline">{getters.getDayName(day.getDay())}</span>
+                        <span className="sm:hidden">{getters.getDayNameShort(day.getDay())}</span>
                       </div>
                       <div
                         className={clsx(
-                          "text-lg font-semibold",
+                          "text-sm sm:text-lg font-semibold",
                           new Date().getDate() === day.getDate() &&
                             new Date().getMonth() === currentDate.getMonth() &&
                             new Date().getFullYear() === currentDate.getFullYear()
@@ -565,9 +566,9 @@ export default function WeeklyView({
             ref={hoursColumnRef}
             onMouseMove={handleMouseMove}
             onMouseLeave={() => setDetailedHour(null)}
-            className="relative grid grid-cols-8 col-span-8"
+            className="relative grid grid-cols-1 sm:grid-cols-8 col-span-1 sm:col-span-8"
           >
-            <div className="col-span-1 bg-default-50 hover:bg-default-100 transition duration-400">
+            <div className="hidden sm:block col-span-1 bg-default-50 hover:bg-default-100 transition duration-400">
               {hours.map((hour, index) => (
                 <motion.div
                   key={`hour-${index}`}
@@ -580,9 +581,9 @@ export default function WeeklyView({
             </div>
 
             <div 
-              className="col-span-7 bg-default-50 grid h-full" 
+              className="col-span-1 sm:col-span-7 bg-default-50 grid h-full" 
               style={{ 
-                gridTemplateColumns: colWidth.map(w => `${w}fr`).join(' '),
+                gridTemplateColumns: typeof window !== 'undefined' && window.innerWidth <= 640 ? '1fr' : colWidth.map(w => `${w}fr`).join(' '),
                 transition: isResizing ? 'none' : 'grid-template-columns 0.3s ease-in-out'
               }}
             >

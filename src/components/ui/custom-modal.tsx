@@ -41,7 +41,7 @@ export default function CustomModal({
   const [localOpen, setLocalOpen] = useState(defaultOpen);
   const contentRef = useRef<HTMLDivElement>(null);
 
-  const contentClassName = clsx("overflow-auto rounded-md bg-card", contentClass);
+  const contentClassName = clsx("rounded-md bg-card", contentClass);
 
   // Narrow dependency: only react to isOpen for this specific modal.
   useEffect(() => {
@@ -136,17 +136,29 @@ export default function CustomModal({
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.9, opacity: 0 }}
                 transition={{ duration: 0.3 }}
-                className={clsx("relative p-1 md:p-6 outline-none rounded-xl shadow-xl", contentClassName)}
+                className={clsx(
+                  "relative flex flex-col outline-none rounded-xl shadow-xl",
+                  "w-full max-w-[calc(100vw-1rem)] max-h-[calc(100vh-2rem)]",
+                  "sm:max-w-2xl md:max-h-[85vh]",
+                  contentClassName
+                )}
                 onClick={(e) => e.stopPropagation()}
                 onKeyDown={handleKeyDown}
                 ref={contentRef}
                 tabIndex={-1}>
-                <button className="absolute top-2 right-2 p-1 rounded-full transition-colors" onClick={() => handleOpenChange(false)}>
-                  <X className="h-4 w-4" />
-                </button>
-                {title && <h2 className="text-2xl tracking-tighter font-semibold mb-4">{title}</h2>}
-                {subheading && <p className="text-muted-foreground mb-4">{subheading}</p>}
-                <div className="pt-[0.5em] flex flex-col flex-grow">{children}</div>
+                <div className="flex-shrink-0 p-4 sm:p-6 pb-2">
+                  <button 
+                    className="absolute top-2 right-2 sm:top-4 sm:right-4 p-1 rounded-full transition-colors hover:bg-gray-100 dark:hover:bg-gray-800 z-10" 
+                    onClick={() => handleOpenChange(false)}
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                  {title && <h2 className="text-xl sm:text-2xl tracking-tighter font-semibold mb-2">{title}</h2>}
+                  {subheading && <p className="text-muted-foreground text-sm sm:text-base">{subheading}</p>}
+                </div>
+                <div className="flex-1 min-h-0 overflow-y-auto px-4 sm:px-6 pb-4 sm:pb-6">
+                  {children}
+                </div>
               </motion.div>
             </motion.div>
           )}
@@ -154,11 +166,11 @@ export default function CustomModal({
       ) : (
         <Dialog open={localOpen} onOpenChange={handleOpenChange}>
           <DialogContent className={contentClassName}>
-            <DialogHeader className="py-2 text-left">
-              <DialogTitle className="text-2xl font-bold">{title}</DialogTitle>
-              {subheading && <DialogDescription>{subheading}</DialogDescription>}
-              <div className="pt-[0.5em] flex flex-col flex-grow">{children}</div>
+            <DialogHeader className="flex-shrink-0">
+              <DialogTitle className="text-xl sm:text-2xl font-bold">{title}</DialogTitle>
+              {subheading && <DialogDescription className="text-sm sm:text-base">{subheading}</DialogDescription>}
             </DialogHeader>
+            <div className="flex-1 min-h-0">{children}</div>
           </DialogContent>
         </Dialog>
       )}

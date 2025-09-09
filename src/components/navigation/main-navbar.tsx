@@ -64,9 +64,9 @@ const navItems: NavItem[] = [
     icon: <CalendarDays className="h-4 w-4" />
   },
   { 
-    id: "contacts", 
-    label: "Contacts", 
-    shortLabel: "Contacts",
+    id: "friends", 
+    label: "Friends", 
+    shortLabel: "Friends",
     icon: <Contact className="h-4 w-4" />
   },
   { 
@@ -157,7 +157,7 @@ export default function MainNavbar({ activeTab, onTabChange, className, onNavbar
           <SignedOut>
             <SignInButton mode="modal">
               <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-colors">
-                Se connecter
+                Sign In
               </button>
             </SignInButton>
           </SignedOut>
@@ -166,7 +166,7 @@ export default function MainNavbar({ activeTab, onTabChange, className, onNavbar
             <div className="flex items-center space-x-3">
               {user && (
                 <span className="text-sm text-gray-600 dark:text-gray-400">
-                  Bonjour, {user.firstName || user.emailAddresses[0]?.emailAddress}
+                  Hello, {user.firstName || user.emailAddresses[0]?.emailAddress}
                 </span>
               )}
               <UserButton 
@@ -314,7 +314,7 @@ export default function MainNavbar({ activeTab, onTabChange, className, onNavbar
                     <SignInButton mode="redirect">
                       <button className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-900/20">
                         <User className="h-4 w-4" />
-                        <span className="font-medium">Se connecter</span>
+                        <span className="font-medium">Sign In</span>
                       </button>
                     </SignInButton>
                   </SignedOut>
@@ -322,7 +322,7 @@ export default function MainNavbar({ activeTab, onTabChange, className, onNavbar
                   <SignedIn>
                     {user && (
                       <div className="px-4 py-2 text-sm text-gray-600 dark:text-gray-400">
-                        Connecté en tant que {user.firstName || user.emailAddresses[0]?.emailAddress}
+                        Signed in as {user.firstName || user.emailAddresses[0]?.emailAddress}
                       </div>
                     )}
                   </SignedIn>

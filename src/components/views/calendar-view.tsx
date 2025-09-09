@@ -36,10 +36,10 @@ export default function CalendarView() {
         className="mb-8"
       >
         <h1 className="text-4xl font-bold text-gray-900 dark:text-white">
-          Calendrier Collaboratif
+          CalendApp
         </h1>
         <p className="text-gray-600 dark:text-gray-400 mt-2 text-lg">
-          Planifiez et organisez vos événements en équipe
+          Plan and organize your events
         </p>
       </motion.div>
 
@@ -55,7 +55,7 @@ export default function CalendarView() {
               stopDayEventSummary={true}
               views={{
                 views: ["month", "week", "day"],
-                mobileViews: ["month", "day"],
+                mobileViews: ["month", "week", "day"],
               }}
               classNames={{
                 tabs: {

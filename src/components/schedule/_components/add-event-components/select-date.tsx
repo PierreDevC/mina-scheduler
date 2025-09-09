@@ -40,29 +40,33 @@ export default function SelectDate({
     data?.endDate instanceof Date ? data.endDate : new Date()
   );
   
-  // Update state when data changes
+  // Update state when data changes (prevent unnecessary updates)
   useEffect(() => {
-    if (data?.startDate instanceof Date) {
+    if (data?.startDate instanceof Date && startDate.getTime() !== data.startDate.getTime()) {
       setStartDate(data.startDate);
     }
-    if (data?.endDate instanceof Date) {
+    if (data?.endDate instanceof Date && endDate.getTime() !== data.endDate.getTime()) {
       setEndDate(data.endDate);
     }
-  }, [data]);
+  }, [data, startDate, endDate]);
   
-  // Update form values when dates change
+  // Update form values when dates change (debounced to prevent loops)
   useEffect(() => {
-    setValue("startDate", startDate);
-    
-    // Ensure end date is not before start date
-    if (isBefore(endDate, startDate)) {
-      const newEndDate = new Date(startDate);
-      newEndDate.setHours(startDate.getHours() + 1);
-      setEndDate(newEndDate);
-      setValue("endDate", newEndDate);
-    } else {
-      setValue("endDate", endDate);
-    }
+    const timeoutId = setTimeout(() => {
+      setValue("startDate", startDate);
+      
+      // Ensure end date is not before start date
+      if (isBefore(endDate, startDate)) {
+        const newEndDate = new Date(startDate);
+        newEndDate.setHours(startDate.getHours() + 1);
+        setEndDate(newEndDate);
+        setValue("endDate", newEndDate);
+      } else {
+        setValue("endDate", endDate);
+      }
+    }, 0);
+
+    return () => clearTimeout(timeoutId);
   }, [startDate, endDate, setValue]);
 
   // Time options for select

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -50,6 +50,7 @@ export default function AddEventModal({
     reset,
     formState: { errors },
     setValue,
+    watch,
   } = useForm<EventFormData>({
     resolver: zodResolver(eventSchema),
     defaultValues: {
@@ -74,6 +75,26 @@ export default function AddEventModal({
     setCurrentStartDate(demoStart);
     setCurrentEndDate(demoEnd);
   }, []);  // Run only once on mount
+
+  // Watch for date changes in the form
+  const watchedStartDate = watch("startDate");
+  const watchedEndDate = watch("endDate");
+
+  // Update current dates when form dates change (with stable reference check)
+  useEffect(() => {
+    if (watchedStartDate && watchedStartDate instanceof Date) {
+      const timeChanged = currentStartDate.getTime() !== watchedStartDate.getTime();
+      if (timeChanged) {
+        setCurrentStartDate(watchedStartDate);
+      }
+    }
+    if (watchedEndDate && watchedEndDate instanceof Date) {
+      const timeChanged = currentEndDate.getTime() !== watchedEndDate.getTime();
+      if (timeChanged) {
+        setCurrentEndDate(watchedEndDate);
+      }
+    }
+  }, [watchedStartDate, watchedEndDate, currentStartDate, currentEndDate]);
 
   // Reset the form on initialization
   useEffect(() => {
@@ -164,7 +185,7 @@ export default function AddEventModal({
   };
 
   return (
-    <form className="flex flex-col gap-4 p-4" onSubmit={handleSubmit(onSubmit)}>
+    <form className="flex flex-col gap-4" onSubmit={handleSubmit(onSubmit)}>
       {CustomAddEventModal ? (
         <CustomAddEventModal register={register} errors={errors} />
       ) : (
@@ -195,8 +216,8 @@ export default function AddEventModal({
 
           <SelectDate
             data={{
-              startDate: data?.default?.startDate || new Date(),
-              endDate: data?.default?.endDate || new Date(),
+              startDate: currentStartDate,
+              endDate: currentEndDate,
             }}
             setValue={setValue}
           />
@@ -210,6 +231,26 @@ export default function AddEventModal({
             eventStartDate={currentStartDate}
             eventEndDate={currentEndDate}
           />
+
+          {/* Show selected attendees */}
+          {selectedPeople.length > 0 && (
+            <div className="grid gap-2">
+              <Label>Event Attendees ({selectedPeople.length})</Label>
+              <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg">
+                <div className="flex flex-wrap gap-2">
+                  {selectedPeople.map((person) => (
+                    <div key={person.id} className="flex items-center gap-2 bg-white dark:bg-gray-700 px-3 py-1 rounded-full border">
+                      <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-white text-xs font-medium">
+                        {person.name.split(" ").map(n => n[0]).join("")}
+                      </div>
+                      <span className="text-sm font-medium">{person.name}</span>
+                      <span className="text-xs text-gray-500">({person.email})</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
 
           <div className="grid gap-2">
             <Label>Color</Label>

@@ -7,7 +7,7 @@ export const mockPeople: Person[] = [
     name: "Alice Dubois",
     email: "alice.dubois@company.com",
     avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Alice",
-    department: "Développement"
+    department: "Development"
   },
   {
     id: "2", 
@@ -28,21 +28,21 @@ export const mockPeople: Person[] = [
     name: "Lara Moreau",
     email: "lara.moreau@company.com", 
     avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Lara",
-    department: "Développement"
+    department: "Development"
   },
   {
     id: "5",
     name: "Marie Bernard",
     email: "marie.bernard@company.com",
     avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Marie",
-    department: "Gestion de Projet"
+    department: "Project Management"
   },
   {
     id: "6",
     name: "Lucas Petit",
     email: "lucas.petit@company.com",
     avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Lucas",
-    department: "Développement"
+    department: "Development"
   },
   {
     id: "7",
@@ -63,14 +63,14 @@ export const mockPeople: Person[] = [
     name: "Camille Simon",
     email: "camille.simon@company.com",
     avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Camille",
-    department: "Ressources Humaines"
+    department: "Human Resources"
   },
   {
     id: "10",
     name: "Antoine Laurent",
     email: "antoine.laurent@company.com",
     avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Antoine",
-    department: "Gestion de Projet"
+    department: "Project Management"
   },
   {
     id: "11",
@@ -84,7 +84,7 @@ export const mockPeople: Person[] = [
     name: "Nicolas Garcia",
     email: "nicolas.garcia@company.com",
     avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Nicolas",
-    department: "Développement"
+    department: "Development"
   }
 ];
 

@@ -185,12 +185,18 @@ export const SchedulerProvider = ({
     return days[day];
   };
 
+  const getDayNameShort = (day: number) => {
+    const days = ["S", "M", "T", "W", "T", "F", "S"];
+    return days[day];
+  };
+
   const getters: Getters = {
     getDaysInMonth,
     getEventsForDay,
     getDaysInWeek,
     getWeekNumber,
     getDayName,
+    getDayNameShort,
   };
 
   // handlers

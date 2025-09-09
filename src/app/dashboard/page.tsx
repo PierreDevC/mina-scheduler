@@ -21,7 +21,7 @@ export default function DashboardPage() {
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600 dark:text-gray-400">Chargement...</p>
+          <p className="mt-4 text-gray-600 dark:text-gray-400">Loading...</p>
         </div>
       </div>
     );
@@ -40,10 +40,10 @@ export default function DashboardPage() {
           {/* Header */}
           <div className="text-center mb-12">
             <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
-              Tableau de Bord
+              Dashboard
             </h1>
             <p className="text-lg text-gray-600 dark:text-gray-300">
-              Bienvenue, {user.firstName || user.emailAddresses[0]?.emailAddress} !
+              Welcome, {user.firstName || user.emailAddresses[0]?.emailAddress}!
             </p>
           </div>
 
@@ -51,19 +51,19 @@ export default function DashboardPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
             <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                Événements à venir
+                Upcoming Events
               </h3>
               <p className="text-3xl font-bold text-blue-600">12</p>
             </div>
             <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                Groupes actifs
+                Active Groups
               </h3>
               <p className="text-3xl font-bold text-green-600">5</p>
             </div>
             <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                Contacts
+                Friends
               </h3>
               <p className="text-3xl font-bold text-purple-600">28</p>
             </div>
@@ -72,21 +72,21 @@ export default function DashboardPage() {
           {/* Quick Actions */}
           <div className="bg-white dark:bg-gray-800 rounded-xl p-8 shadow-lg mb-12">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
-              Actions rapides
+              Quick Actions
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
               <Link href="/app">
                 <Button className="w-full h-16 text-left justify-start bg-blue-600 hover:bg-blue-700">
                   <div>
-                    <div className="font-semibold">Calendrier</div>
-                    <div className="text-sm opacity-90">Voir et gérer vos événements</div>
+                    <div className="font-semibold">Calendar</div>
+                    <div className="text-sm opacity-90">View and manage your events</div>
                   </div>
                 </Button>
               </Link>
               <Button variant="outline" className="w-full h-16 text-left justify-start">
                 <div>
-                  <div className="font-semibold">Créer un événement</div>
-                  <div className="text-sm opacity-70">Ajouter un nouvel événement</div>
+                  <div className="font-semibold">Create Event</div>
+                  <div className="text-sm opacity-70">Add a new event</div>
                 </div>
               </Button>
               <Button 
@@ -97,22 +97,22 @@ export default function DashboardPage() {
                 <div>
                   <div className="font-semibold flex items-center gap-2">
                     <Clock className="h-4 w-4" />
-                    Disponibilités
+                    Availability
                   </div>
-                  <div className="text-sm opacity-70">Définir mes créneaux libres</div>
+                  <div className="text-sm opacity-70">Set my available time slots</div>
                 </div>
               </Button>
               <Button variant="outline" className="w-full h-16 text-left justify-start">
                 <div>
-                  <div className="font-semibold">Gérer les groupes</div>
-                  <div className="text-sm opacity-70">Organiser vos équipes</div>
+                  <div className="font-semibold">Manage Groups</div>
+                  <div className="text-sm opacity-70">Organize your teams</div>
                 </div>
               </Button>
               <Link href="/user-profile">
                 <Button variant="outline" className="w-full h-16 text-left justify-start">
                   <div>
-                    <div className="font-semibold">Profil</div>
-                    <div className="text-sm opacity-70">Modifier vos informations</div>
+                    <div className="font-semibold">Profile</div>
+                    <div className="text-sm opacity-70">Edit your information</div>
                   </div>
                 </Button>
               </Link>
@@ -127,34 +127,34 @@ export default function DashboardPage() {
           {/* Recent Activity */}
           <div className="bg-white dark:bg-gray-800 rounded-xl p-8 shadow-lg">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
-              Activité récente
+              Recent Activity
             </h2>
             <div className="space-y-4">
               <div className="flex items-center space-x-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
                 <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
                 <div>
                   <p className="font-medium text-gray-900 dark:text-white">
-                    Événement "Réunion équipe" créé
+                    Event "Team Meeting" created
                   </p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Il y a 2 heures</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">2 hours ago</p>
                 </div>
               </div>
               <div className="flex items-center space-x-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
                 <div className="w-2 h-2 bg-green-600 rounded-full"></div>
                 <div>
                   <p className="font-medium text-gray-900 dark:text-white">
-                    Groupe "Développement" rejoint
+                    Joined "Development" group
                   </p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Hier</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Yesterday</p>
                 </div>
               </div>
               <div className="flex items-center space-x-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
                 <div className="w-2 h-2 bg-purple-600 rounded-full"></div>
                 <div>
                   <p className="font-medium text-gray-900 dark:text-white">
-                    3 nouveaux contacts ajoutés
+                    3 new friends added
                   </p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Il y a 3 jours</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">3 days ago</p>
                 </div>
               </div>
             </div>
@@ -173,30 +173,30 @@ export default function DashboardPage() {
 
 const quickActions = [
   {
-    name: "Événements aujourd'hui",
+    name: "Today's Events",
     value: "5",
     icon: Calendar,
   },
   {
-    name: "Membres équipe",
+    name: "Team Members",
     value: "12",
     icon: Users,
   },
   {
-    name: "Taux productivité",
+    name: "Productivity Rate",
     value: "87%",
     icon: BarChart3,
   },
   {
-    name: "Paramètres",
-    value: "Actif",
+    name: "Settings",
+    value: "Active",
     icon: Settings,
   },
 ];
 
 const upcomingEvents = [
-  { title: "Réunion équipe", time: "10:00" },
-  { title: "Présentation client", time: "14:30" },
-  { title: "Formation", time: "16:00" },
-  { title: "Call téléphone", time: "17:15" },
+  { title: "Team Meeting", time: "10:00" },
+  { title: "Client Presentation", time: "14:30" },
+  { title: "Training", time: "16:00" },
+  { title: "Phone Call", time: "17:15" },
 ]; 

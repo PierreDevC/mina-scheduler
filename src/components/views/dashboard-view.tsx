@@ -6,32 +6,31 @@ import { Calendar, Users, BarChart3, Settings } from "lucide-react";
 
 const quickActions = [
   {
-    name: "Événements aujourd'hui",
+    name: "Today's events",
     value: "5",
     icon: Calendar,
   },
   {
-    name: "Membres équipe",
+    name: "Team members",
     value: "12",
     icon: Users,
   },
   {
-    name: "Taux productivité",
+    name: "Productivity rate",
     value: "87%",
     icon: BarChart3,
   },
   {
-    name: "Paramètres",
-    value: "Actif",
+    name: "Settings",
+    value: "Active",
     icon: Settings,
   },
 ];
 
-const upcomingEvents = [
-  { title: "Réunion équipe", time: "10:00" },
-  { title: "Présentation client", time: "14:30" },
-  { title: "Formation", time: "16:00" },
-  { title: "Call téléphone", time: "17:15" },
+  const upcomingEvents = [
+    { title: "Gym session with friends", time: "10:00" },
+    { title: "Flutter presentation", time: "14:30" },
+    { title: "Developers meeting", time: "16:00" }
 ];
 
 const containerVariants = {
@@ -74,7 +73,7 @@ export default function DashboardView({ onNavigate }: DashboardViewProps = {}) {
           Dashboard CalendApp
         </h1>
         <p className="text-gray-600 dark:text-gray-400 mt-2 text-base md:text-lg">
-          Gérez votre planning et analysez votre productivité
+          Manage your schedule and analyze your productivity
         </p>
       </motion.div>
 
@@ -112,7 +111,7 @@ export default function DashboardView({ onNavigate }: DashboardViewProps = {}) {
           className="bg-white dark:bg-slate-800 p-4 md:p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700"
         >
           <h3 className="text-lg md:text-xl font-semibold text-gray-900 dark:text-white mb-4 md:mb-6">
-            Prochains événements
+            Upcoming events
           </h3>
           <div className="space-y-4">
             {upcomingEvents.map((event, index) => (
@@ -136,7 +135,7 @@ export default function DashboardView({ onNavigate }: DashboardViewProps = {}) {
             ))}
           </div>
           <Button className="w-full mt-6" variant="outline">
-            Voir tous les événements
+            See all events
           </Button>
         </motion.div>
 
@@ -146,20 +145,20 @@ export default function DashboardView({ onNavigate }: DashboardViewProps = {}) {
           className="bg-white dark:bg-slate-800 p-4 md:p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700"
         >
           <h3 className="text-lg md:text-xl font-semibold text-gray-900 dark:text-white mb-4 md:mb-6">
-            Actions rapides
+            Quick actions
           </h3>
           <div className="space-y-3">
             <Button className="w-full justify-start" size="lg">
               <Calendar className="mr-3 h-4 w-4" />
-              Nouveau événement
+              New event
             </Button>
             <Button className="w-full justify-start" variant="outline" size="lg">
               <BarChart3 className="mr-3 h-4 w-4" />
-              Voir les statistiques
+              See statistics
             </Button>
             <Button className="w-full justify-start" variant="outline" size="lg">
               <Users className="mr-3 h-4 w-4" />
-              Inviter des membres
+              Invite members
             </Button>
             <Button 
               className="w-full justify-start" 
@@ -168,7 +167,7 @@ export default function DashboardView({ onNavigate }: DashboardViewProps = {}) {
               onClick={() => onNavigate?.("settings")}
             >
               <Settings className="mr-3 h-4 w-4" />
-              Paramètres
+              Settings
             </Button>
           </div>
         </motion.div>

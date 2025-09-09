@@ -1,70 +1,144 @@
 "use client";
 
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Calendar, Clock, MapPin, Users, Plus, Filter, Search } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Calendar, Clock, MapPin, Users, Plus, Filter, Search, XCircle, CheckCircle, X, RotateCcw, History, AlertCircle } from "lucide-react";
+import { useModal } from "@/providers/modal-context";
+import AddEventModal from "@/components/schedule/_modals/add-event-modal";
+import CustomModal from "@/components/ui/custom-modal";
 
 const events = [
   {
     id: 1,
-    title: "Réunion équipe développement",
-    description: "Point hebdomadaire sur l'avancement des projets",
+    title: "Gym Session with friends",
+    description: "Weekly workout session with the team",
     date: "2024-01-15",
-    time: "10:00",
+    time: "18:00",
     duration: "1h30",
-    location: "Salle de conférence A",
-    attendees: 8,
-    type: "meeting",
-    priority: "high",
-    organizer: "Alice Martin",
+    location: "Local Gym",
+    attendees: 4,
+    type: "workout",
+    priority: "low",
+    organizer: "Pierre-Sylvestre Cypré",
+    status: "confirmed",
+    isRecurring: true,
+    recurringType: "weekly",
   },
   {
     id: 2,
-    title: "Présentation client",
-    description: "Démonstration de la nouvelle fonctionnalité",
-    date: "2024-01-15",
-    time: "14:30",
-    duration: "2h",
-    location: "Visioconférence",
-    attendees: 5,
+    title: "Flutter presentation",
+    description: "Presentation on Flutter development best practices",
+    date: "2024-01-16",
+    time: "14:00",
+    duration: "1h",
+    location: "Conference Room B",
+    attendees: 6,
     type: "presentation",
-    priority: "high",
-    organizer: "Bob Dupont",
+    priority: "medium",
+    organizer: "Xavier Giguère",
+    status: "unconfirmed",
+    isRecurring: false,
   },
   {
     id: 3,
-    title: "Formation Next.js",
-    description: "Session de formation sur les nouvelles fonctionnalités",
-    date: "2024-01-16",
-    time: "09:00",
-    duration: "4h",
-    location: "Salle de formation",
-    attendees: 12,
-    type: "training",
-    priority: "medium",
-    organizer: "Claire Rousseau",
+    title: "Meeting with devs",
+    description: "Development team sync and planning session",
+    date: "2024-01-17",
+    time: "10:00",
+    duration: "2h",
+    location: "Coffee Only Office",
+    attendees: 4,
+    type: "meeting",
+    priority: "high",
+    organizer: "William Descoteaux",
+    status: "confirmed",
+    isRecurring: false,
   },
   {
     id: 4,
-    title: "Brainstorming UX",
-    description: "Séance créative pour améliorer l'expérience utilisateur",
-    date: "2024-01-17",
+    title: "Project Review",
+    description: "Monthly project review meeting",
+    date: "2023-12-15",
     time: "15:00",
-    duration: "2h",
-    location: "Espace créatif",
-    attendees: 6,
-    type: "workshop",
+    duration: "1h30",
+    location: "Conference Room A",
+    attendees: 8,
+    type: "meeting",
     priority: "medium",
-    organizer: "David Chen",
+    organizer: "Alexandre Emond",
+    status: "past",
+    isRecurring: true,
+    recurringType: "monthly",
+  },
+  {
+    id: 5,
+    title: "Team Building Event",
+    description: "Quarterly team building activity",
+    date: "2024-02-20",
+    time: "09:00",
+    duration: "4h",
+    location: "Outdoor Park",
+    attendees: 12,
+    type: "workshop",
+    priority: "low",
+    organizer: "Sophie Lefebvre",
+    status: "confirmed",
+    isRecurring: true,
+    recurringType: "quarterly",
+  },
+  {
+    id: 6,
+    title: "Client Meeting",
+    description: "Important client presentation",
+    date: "2024-01-10",
+    time: "11:00",
+    duration: "2h",
+    location: "Client Office",
+    attendees: 5,
+    type: "presentation",
+    priority: "high",
+    organizer: "Lara Moreau",
+    status: "canceled",
+    isRecurring: false,
+  },
+  {
+    id: 7,
+    title: "Code Review Session",
+    description: "Weekly code review with the team",
+    date: "2024-01-18",
+    time: "16:00",
+    duration: "1h",
+    location: "Development Room",
+    attendees: 6,
+    type: "review",
+    priority: "medium",
+    organizer: "Thomas Richard",
+    status: "unconfirmed",
+    isRecurring: true,
+    recurringType: "weekly",
   },
 ];
 
 const upcomingEvents = [
-  { title: "Daily standup", time: "09:00", type: "meeting" },
-  { title: "Code review", time: "11:00", type: "review" },
-  { title: "Client call", time: "16:00", type: "call" },
+  { title: "Daily Standup", time: "09:00", type: "meeting" },
+  { title: "Code Review", time: "11:00", type: "review" },
+  { title: "Client Call", time: "16:00", type: "call" },
+];
+
+// Filter types
+type FilterType = "all" | "upcoming" | "unconfirmed" | "recurring" | "past" | "canceled";
+
+const filterOptions = [
+  { id: "all", label: "All Events", icon: Calendar, count: 0 },
+  { id: "upcoming", label: "Upcoming", icon: CheckCircle, count: 0 },
+  { id: "unconfirmed", label: "Unconfirmed", icon: AlertCircle, count: 0 },
+  { id: "recurring", label: "Recurring", icon: RotateCcw, count: 0 },
+  { id: "past", label: "Past", icon: History, count: 0 },
+  { id: "canceled", label: "Canceled", icon: X, count: 0 },
 ];
 
 const containerVariants = {
@@ -99,6 +173,8 @@ const getEventTypeColor = (type: string) => {
       return "bg-green-500";
     case "workshop":
       return "bg-orange-500";
+    case "workout":
+      return "bg-red-500";
     default:
       return "bg-gray-500";
   }
@@ -107,32 +183,139 @@ const getEventTypeColor = (type: string) => {
 const getEventTypeBadge = (type: string) => {
   switch (type) {
     case "meeting":
-      return <Badge className="bg-blue-100 text-blue-800">Réunion</Badge>;
+      return <Badge className="bg-blue-100 text-blue-800">Meeting</Badge>;
     case "presentation":
-      return <Badge className="bg-purple-100 text-purple-800">Présentation</Badge>;
+      return <Badge className="bg-purple-100 text-purple-800">Presentation</Badge>;
     case "training":
-      return <Badge className="bg-green-100 text-green-800">Formation</Badge>;
+      return <Badge className="bg-green-100 text-green-800">Training</Badge>;
     case "workshop":
-      return <Badge className="bg-orange-100 text-orange-800">Atelier</Badge>;
+      return <Badge className="bg-orange-100 text-orange-800">Workshop</Badge>;
+    case "workout":
+      return <Badge className="bg-red-100 text-red-800">Workout</Badge>;
+    case "review":
+      return <Badge className="bg-yellow-100 text-yellow-800">Review</Badge>;
+    case "call":
+      return <Badge className="bg-teal-100 text-teal-800">Call</Badge>;
     default:
-      return <Badge variant="secondary">Autre</Badge>;
+      return <Badge variant="secondary">Other</Badge>;
   }
 };
 
 const getPriorityBadge = (priority: string) => {
   switch (priority) {
     case "high":
-      return <Badge variant="destructive">Haute</Badge>;
+      return <Badge variant="destructive">High</Badge>;
     case "medium":
-      return <Badge variant="default">Moyenne</Badge>;
+      return <Badge variant="default">Medium</Badge>;
     case "low":
-      return <Badge variant="secondary">Basse</Badge>;
+      return <Badge variant="secondary">Low</Badge>;
     default:
-      return <Badge variant="outline">Non définie</Badge>;
+      return <Badge variant="outline">Undefined</Badge>;
+  }
+};
+
+const getStatusBadge = (status: string) => {
+  switch (status) {
+    case "confirmed":
+      return <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">Confirmed</Badge>;
+    case "unconfirmed":
+      return <Badge className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">Unconfirmed</Badge>;
+    case "past":
+      return <Badge className="bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200">Past</Badge>;
+    case "canceled":
+      return <Badge className="bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">Canceled</Badge>;
+    default:
+      return <Badge variant="outline">Unknown</Badge>;
   }
 };
 
 export default function EventsView() {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [activeFilter, setActiveFilter] = useState<FilterType>("all");
+  const { setOpen } = useModal();
+
+  // Helper function to check if event is upcoming
+  const isEventUpcoming = (event: any) => {
+    const eventDate = new Date(event.date);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return eventDate >= today && event.status !== "canceled" && event.status !== "past";
+  };
+
+  // Helper function to check if event is past
+  const isEventPast = (event: any) => {
+    const eventDate = new Date(event.date);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return eventDate < today || event.status === "past";
+  };
+
+  // Calculate filter counts
+  const getFilterCounts = () => {
+    return {
+      all: events.length,
+      upcoming: events.filter(isEventUpcoming).length,
+      unconfirmed: events.filter(e => e.status === "unconfirmed").length,
+      recurring: events.filter(e => e.isRecurring).length,
+      past: events.filter(isEventPast).length,
+      canceled: events.filter(e => e.status === "canceled").length,
+    };
+  };
+
+  const filterCounts = getFilterCounts();
+
+  // Filter events based on search query and active filter
+  const filteredEvents = events.filter(event => {
+    // Apply search filter
+    const searchTerm = searchQuery.toLowerCase().trim();
+    const matchesSearch = !searchTerm || (
+      event.title.toLowerCase().includes(searchTerm) ||
+      event.description.toLowerCase().includes(searchTerm) ||
+      event.location.toLowerCase().includes(searchTerm) ||
+      event.organizer.toLowerCase().includes(searchTerm) ||
+      event.type.toLowerCase().includes(searchTerm) ||
+      event.priority.toLowerCase().includes(searchTerm)
+    );
+
+    // Apply category filter
+    let matchesFilter = true;
+    switch (activeFilter) {
+      case "upcoming":
+        matchesFilter = isEventUpcoming(event);
+        break;
+      case "unconfirmed":
+        matchesFilter = event.status === "unconfirmed";
+        break;
+      case "recurring":
+        matchesFilter = event.isRecurring;
+        break;
+      case "past":
+        matchesFilter = isEventPast(event);
+        break;
+      case "canceled":
+        matchesFilter = event.status === "canceled";
+        break;
+      case "all":
+      default:
+        matchesFilter = true;
+        break;
+    }
+
+    return matchesSearch && matchesFilter;
+  });
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+  };
+
+  const handleCreateEvent = () => {
+    setOpen(
+      <CustomModal title="Add Event">
+        <AddEventModal />
+      </CustomModal>
+    );
+  };
+
   return (
     <motion.div
       variants={containerVariants}
@@ -143,37 +326,132 @@ export default function EventsView() {
     >
       <motion.div variants={itemVariants} className="mb-8">
         <h1 className="text-4xl font-bold text-gray-900 dark:text-white">
-          Événements
+          Events
         </h1>
         <p className="text-gray-600 dark:text-gray-400 mt-2 text-lg">
-          Organisez et suivez tous vos événements
+          Organize and track all your events
         </p>
       </motion.div>
 
-      {/* Actions et filtres */}
-      <motion.div variants={itemVariants} className="flex flex-wrap gap-4 mb-8">
-        <Button className="flex items-center gap-2">
-          <Plus className="h-4 w-4" />
-          Nouvel événement
-        </Button>
-        <Button variant="outline" className="flex items-center gap-2">
-          <Filter className="h-4 w-4" />
-          Filtrer
-        </Button>
-        <Button variant="outline" className="flex items-center gap-2">
-          <Search className="h-4 w-4" />
-          Rechercher
-        </Button>
+      {/* Actions and search */}
+      <motion.div variants={itemVariants} className="flex flex-col sm:flex-row gap-4 mb-8">
+        <div className="flex-1">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+            <Input
+              placeholder="Search events..."
+              className="pl-10 pr-10"
+              value={searchQuery}
+              onChange={handleSearchChange}
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery("")}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+              >
+                <XCircle className="h-4 w-4" />
+              </button>
+            )}
+          </div>
+        </div>
+        <div className="flex gap-2">
+          <Button className="flex items-center gap-2" onClick={handleCreateEvent}>
+            <Plus className="h-4 w-4" />
+            New Event
+          </Button>
+        </div>
+      </motion.div>
+
+      {/* Filter buttons */}
+      <motion.div variants={itemVariants} className="mb-8">
+        <div className="flex flex-wrap gap-2">
+          {filterOptions.map((filter) => {
+            const Icon = filter.icon;
+            const count = filterCounts[filter.id as FilterType];
+            const isActive = activeFilter === filter.id;
+            
+            return (
+              <Button
+                key={filter.id}
+                variant={isActive ? "default" : "outline"}
+                size="sm"
+                onClick={() => setActiveFilter(filter.id as FilterType)}
+                className={`flex items-center gap-2 ${
+                  isActive 
+                    ? "bg-blue-600 hover:bg-blue-700 text-white" 
+                    : "hover:bg-gray-50 dark:hover:bg-gray-700"
+                }`}
+              >
+                <Icon className="h-4 w-4" />
+                {filter.label}
+                <Badge 
+                  variant="secondary" 
+                  className={`text-xs ${
+                    isActive 
+                      ? "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200" 
+                      : "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200"
+                  }`}
+                >
+                  {count}
+                </Badge>
+              </Button>
+            );
+          })}
+        </div>
+      </motion.div>
+
+      {/* Mobile Quick Actions - shown above events list on mobile only */}
+      <motion.div variants={itemVariants} className="mb-8 lg:hidden">
+        <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+          <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">
+            Quick Actions
+          </h3>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <Button className="w-full justify-start" size="lg" onClick={handleCreateEvent}>
+              <Plus className="mr-3 h-4 w-4" />
+              Create Event
+            </Button>
+            <Button className="w-full justify-start" variant="outline" size="lg">
+              <Calendar className="mr-3 h-4 w-4" />
+              View Calendar
+            </Button>
+            <Button className="w-full justify-start" variant="outline" size="lg">
+              <Users className="mr-3 h-4 w-4" />
+              Invite Attendees
+            </Button>
+          </div>
+        </div>
       </motion.div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Liste des événements */}
+        {/* Events list */}
         <motion.div variants={itemVariants} className="lg:col-span-2">
           <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-6">
-            Événements à venir
+            {filterOptions.find(f => f.id === activeFilter)?.label} ({filteredEvents.length})
           </h2>
           <div className="space-y-6">
-            {events.map((event, index) => (
+            {filteredEvents.length === 0 ? (
+              <div className="text-center py-12">
+                <div className="flex flex-col items-center justify-center space-y-4">
+                  <Search className="h-16 w-16 text-gray-300 dark:text-gray-600" />
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                      No events found
+                    </h3>
+                    <p className="text-gray-600 dark:text-gray-400 mb-4">
+                      Try adjusting your search terms or{" "}
+                      <button 
+                        onClick={() => setSearchQuery("")}
+                        className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 underline"
+                      >
+                        clear your search
+                      </button>
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              filteredEvents.map((event, index) => (
               <motion.div
                 key={event.id}
                 variants={itemVariants}
@@ -186,9 +464,17 @@ export default function EventsView() {
                       <Calendar className="h-6 w-6 text-white" />
                     </div>
                     <div className="flex-1">
-                      <h3 className="font-semibold text-gray-900 dark:text-white text-lg">
-                        {event.title}
-                      </h3>
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-semibold text-gray-900 dark:text-white text-lg">
+                          {event.title}
+                        </h3>
+                        {event.isRecurring && (
+                          <Badge variant="outline" className="text-xs">
+                            <RotateCcw className="h-3 w-3 mr-1" />
+                            {event.recurringType}
+                          </Badge>
+                        )}
+                      </div>
                       <p className="text-gray-600 dark:text-gray-300 text-sm mt-1">
                         {event.description}
                       </p>
@@ -197,6 +483,7 @@ export default function EventsView() {
                   <div className="flex flex-col gap-2">
                     {getEventTypeBadge(event.type)}
                     {getPriorityBadge(event.priority)}
+                    {getStatusBadge(event.status)}
                   </div>
                 </div>
 
@@ -219,7 +506,7 @@ export default function EventsView() {
                   <div className="flex items-center space-x-3">
                     <div className="flex items-center space-x-2 text-gray-600 dark:text-gray-400">
                       <Users className="h-4 w-4" />
-                      <span className="text-sm">{event.attendees} participants</span>
+                      <span className="text-sm">{event.attendees} attendees</span>
                     </div>
                     <div className="flex -space-x-2">
                       {[...Array(Math.min(event.attendees, 3))].map((_, i) => (
@@ -239,24 +526,46 @@ export default function EventsView() {
                   </div>
                   <div className="flex items-center space-x-2">
                     <span className="text-sm text-gray-500 dark:text-gray-400">
-                      Organisé par {event.organizer}
+                      Organized by {event.organizer}
                     </span>
                     <Button variant="ghost" size="sm">
-                      Détails
+                      Details
                     </Button>
                   </div>
                 </div>
               </motion.div>
-            ))}
+              ))
+            )}
           </div>
         </motion.div>
 
         {/* Sidebar */}
         <motion.div variants={itemVariants} className="lg:col-span-1 space-y-6">
-          {/* Événements du jour */}
+          {/* Quick actions - Desktop only */}
+          <div className="hidden lg:block bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">
+              Quick Actions
+            </h3>
+            <div className="space-y-3">
+              <Button className="w-full justify-start" size="lg" onClick={handleCreateEvent}>
+                <Plus className="mr-3 h-4 w-4" />
+                Create Event
+              </Button>
+              <Button className="w-full justify-start" variant="outline" size="lg">
+                <Calendar className="mr-3 h-4 w-4" />
+                View Calendar
+              </Button>
+              <Button className="w-full justify-start" variant="outline" size="lg">
+                <Users className="mr-3 h-4 w-4" />
+                Invite Attendees
+              </Button>
+            </div>
+          </div>
+
+          {/* Today's events */}
           <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
             <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">
-              Aujourd'hui
+              Today
             </h3>
             <div className="space-y-4">
               {upcomingEvents.map((event, index) => (
@@ -280,53 +589,32 @@ export default function EventsView() {
               ))}
             </div>
             <Button className="w-full mt-6" variant="outline">
-              Voir l'agenda complet
+              View Full Calendar
             </Button>
           </div>
 
-          {/* Statistiques */}
+          {/* Statistics */}
           <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
             <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">
-              Statistiques
+              Statistics
             </h3>
             <div className="space-y-4">
               <div className="flex justify-between items-center">
-                <span className="text-gray-600 dark:text-gray-400">Événements ce mois</span>
+                <span className="text-gray-600 dark:text-gray-400">Events this month</span>
                 <span className="font-semibold text-gray-900 dark:text-white">{events.length}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-gray-600 dark:text-gray-400">Participants total</span>
+                <span className="text-gray-600 dark:text-gray-400">Total attendees</span>
                 <span className="font-semibold text-gray-900 dark:text-white">
                   {events.reduce((acc, event) => acc + event.attendees, 0)}
                 </span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-gray-600 dark:text-gray-400">Événements haute priorité</span>
+                <span className="text-gray-600 dark:text-gray-400">High priority events</span>
                 <span className="font-semibold text-red-600">
                   {events.filter(e => e.priority === "high").length}
                 </span>
               </div>
-            </div>
-          </div>
-
-          {/* Actions rapides */}
-          <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
-            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">
-              Actions rapides
-            </h3>
-            <div className="space-y-3">
-              <Button className="w-full justify-start" size="lg">
-                <Plus className="mr-3 h-4 w-4" />
-                Créer un événement
-              </Button>
-              <Button className="w-full justify-start" variant="outline" size="lg">
-                <Calendar className="mr-3 h-4 w-4" />
-                Voir le calendrier
-              </Button>
-              <Button className="w-full justify-start" variant="outline" size="lg">
-                <Users className="mr-3 h-4 w-4" />
-                Inviter des participants
-              </Button>
             </div>
           </div>
         </motion.div>

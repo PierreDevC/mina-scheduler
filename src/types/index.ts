@@ -97,6 +97,7 @@ export interface Getters {
   getDaysInWeek: (week: number, year: number) => Date[];
   getWeekNumber: (date: Date) => number;
   getDayName: (day: number) => string;
+  getDayNameShort: (day: number) => string;
 }
 
 // Define the context value interface

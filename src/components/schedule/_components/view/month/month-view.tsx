@@ -236,7 +236,8 @@ export default function MonthView({
               key={idx}
               className="text-left my-8 text-4xl tracking-tighter font-medium"
             >
-              {day}
+              <span className="hidden sm:inline">{day}</span>
+              <span className="sm:hidden text-center block">{day[0]}</span>
             </div>
           ))}
 

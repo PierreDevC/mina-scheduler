@@ -28,7 +28,7 @@ import {
 import { Check, UserPlus, X, Clock, Users, AlertCircle, CheckCircle, MinusCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Person } from "@/types/index";
-import { mockPeople, getDepartments } from "@/data/mockPeople";
+import { mockFriends } from "@/data/mockFriends";
 import { 
   checkMultiplePeopleAvailability, 
   getAvailabilitySummary,
@@ -52,13 +52,10 @@ export default function PeopleSelectorWithAvailability({
   eventEndDate,
   className,
 }: PeopleSelectorWithAvailabilityProps) {
-  const [open, setOpen] = useState(false);
   const [searchValue, setSearchValue] = useState("");
-  const [filteredPeople, setFilteredPeople] = useState<Person[]>(mockPeople);
-  const [selectedDepartment, setSelectedDepartment] = useState<string>("all");
+  const [filteredPeople, setFilteredPeople] = useState<Person[]>(mockFriends);
   const [showAvailabilityDetails, setShowAvailabilityDetails] = useState(false);
 
-  const departments = getDepartments();
 
   // Calculate availability when event times or selected people change
   const availabilityData = useMemo(() => {
@@ -132,14 +129,9 @@ export default function PeopleSelectorWithAvailability({
     }
   }, [selectedPeople, eventStartDate]);
 
-  // Filter people based on search and department
+  // Filter people based on search
   useEffect(() => {
-    let filtered = mockPeople;
-
-    // Filter by department
-    if (selectedDepartment !== "all") {
-      filtered = filtered.filter(person => person.department === selectedDepartment);
-    }
+    let filtered = mockFriends;
 
     // Filter by search term
     if (searchValue) {
@@ -152,7 +144,7 @@ export default function PeopleSelectorWithAvailability({
     }
 
     setFilteredPeople(filtered);
-  }, [searchValue, selectedDepartment]);
+  }, [searchValue]);
 
   const handlePersonSelect = (person: Person) => {
     const isSelected = selectedPeople.some(p => p.id === person.id);
@@ -203,7 +195,7 @@ export default function PeopleSelectorWithAvailability({
   return (
     <TooltipProvider>
       <div className={cn("grid gap-4", className)}>
-        <Label>Inviter des personnes</Label>
+        <Label>Invite People</Label>
         
         {/* Selected People Display with Availability */}
         {selectedPeople.length > 0 && (
@@ -245,17 +237,17 @@ export default function PeopleSelectorWithAvailability({
                         <div>
                           <p className="font-medium">{person.name}</p>
                           <p className="text-sm">
-                            {availability.status === "available" && "✅ Disponible"}
-                            {availability.status === "partial" && "⚠️ Partiellement disponible"}
-                            {availability.status === "busy" && "❌ Occupé(e)"}
-                            {availability.status === "unknown" && "❓ Disponibilité inconnue"}
+                            {availability.status === "available" && "✅ Available"}
+                            {availability.status === "partial" && "⚠️ Partially available"}
+                            {availability.status === "busy" && "❌ Busy"}
+                            {availability.status === "unknown" && "❓ Availability unknown"}
                           </p>
                           {availability.conflictReason && (
                             <p className="text-xs text-gray-600">{availability.conflictReason}</p>
                           )}
                         </div>
                       ) : (
-                        <p>Sélectionnez une heure pour voir la disponibilité</p>
+                        <p>Select a time to see availability</p>
                       )}
                     </TooltipContent>
                   </Tooltip>
@@ -268,7 +260,7 @@ export default function PeopleSelectorWithAvailability({
               <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
                 <div className="flex items-center justify-between mb-3">
                   <h4 className="font-medium text-gray-900 dark:text-white">
-                    Résumé des disponibilités
+                    Availability Summary
                   </h4>
                   <Button
                     type="button"
@@ -276,7 +268,7 @@ export default function PeopleSelectorWithAvailability({
                     size="sm"
                     onClick={() => setShowAvailabilityDetails(!showAvailabilityDetails)}
                   >
-                    {showAvailabilityDetails ? "Masquer" : "Voir détails"}
+                    {showAvailabilityDetails ? "Hide" : "Show details"}
                   </Button>
                 </div>
                 
@@ -285,19 +277,19 @@ export default function PeopleSelectorWithAvailability({
                     <span className="text-lg font-semibold text-green-600">
                       {availabilityData.summary.available}
                     </span>
-                    <span className="text-xs text-gray-600">Disponibles</span>
+                    <span className="text-xs text-gray-600">Available</span>
                   </div>
                   <div className="flex flex-col">
                     <span className="text-lg font-semibold text-yellow-600">
                       {availabilityData.summary.partial}
                     </span>
-                    <span className="text-xs text-gray-600">Partiels</span>
+                    <span className="text-xs text-gray-600">Partial</span>
                   </div>
                   <div className="flex flex-col">
                     <span className="text-lg font-semibold text-red-600">
                       {availabilityData.summary.busy}
                     </span>
-                    <span className="text-xs text-gray-600">Occupés</span>
+                    <span className="text-xs text-gray-600">Busy</span>
                   </div>
                   <div className="flex flex-col">
                     <span className="text-lg font-semibold text-gray-600">
@@ -311,12 +303,12 @@ export default function PeopleSelectorWithAvailability({
                 {timeSuggestions.length > 0 && (
                   <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-600">
                     <h5 className="text-sm font-medium text-gray-900 dark:text-white mb-2">
-                      💡 Créneaux suggérés (plus de disponibilités)
+                      💡 Suggested time slots (more availability)
                     </h5>
                     <div className="flex flex-wrap gap-2">
                       {timeSuggestions.slice(0, 4).map((suggestion, index) => (
                         <Badge key={index} variant="outline" className="text-xs">
-                          {suggestion.time} ({suggestion.availableCount}/{selectedPeople.length} disponibles)
+                          {suggestion.time} ({suggestion.availableCount}/{selectedPeople.length} available)
                         </Badge>
                       ))}
                     </div>
@@ -332,10 +324,10 @@ export default function PeopleSelectorWithAvailability({
                         <div className="flex items-center gap-2">
                           {getAvailabilityIcon(status.status)}
                           <span className={cn("text-xs", getAvailabilityColor(status.status).split(" ")[0])}>
-                            {status.status === "available" && "Disponible"}
-                            {status.status === "partial" && "Partiel"}
-                            {status.status === "busy" && "Occupé"}
-                            {status.status === "unknown" && "Inconnu"}
+                            {status.status === "available" && "Available"}
+                            {status.status === "partial" && "Partial"}
+                            {status.status === "busy" && "Busy"}
+                            {status.status === "unknown" && "Unknown"}
                           </span>
                         </div>
                       </div>
@@ -347,65 +339,46 @@ export default function PeopleSelectorWithAvailability({
           </div>
         )}
 
-        {/* Add People Button */}
-        <Popover open={open} onOpenChange={setOpen}>
-          <PopoverTrigger asChild>
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full justify-start text-left font-normal"
-            >
-              <UserPlus className="mr-2 h-4 w-4" />
-              {selectedPeople.length === 0
-                ? "Ajouter des personnes..."
-                : `${selectedPeople.length} personne(s) invitée(s)`}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-96 p-0" align="start">
-            <Command>
-              <CommandInput
-                placeholder="Rechercher des personnes..."
-                value={searchValue}
-                onValueChange={setSearchValue}
-              />
-              
-              {/* Department Filter */}
-              <div className="p-2 border-b">
-                <div className="flex flex-wrap gap-1">
-                  <Button
-                    type="button"
-                    variant={selectedDepartment === "all" ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setSelectedDepartment("all")}
-                  >
-                    Tous
-                  </Button>
-                  {departments.map((dept) => (
-                    <Button
-                      key={dept}
-                      type="button"
-                      variant={selectedDepartment === dept ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setSelectedDepartment(dept)}
-                    >
-                      {dept}
-                    </Button>
-                  ))}
-                </div>
-              </div>
+        {/* Search Friends */}
+        <div className="space-y-3">
+          <div className="relative">
+            <Input
+              type="text"
+              placeholder="Search friends by name or email..."
+              value={searchValue}
+              onChange={(e) => setSearchValue(e.target.value)}
+              className="w-full pl-10"
+            />
+            <Users className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+          </div>
+          
 
-              <CommandList>
-                <CommandEmpty>Aucune personne trouvée.</CommandEmpty>
-                <CommandGroup>
+          {/* Search Results */}
+          {searchValue && (
+            <div className="max-h-64 overflow-y-auto border border-gray-200 dark:border-gray-700 rounded-lg">
+              {filteredPeople.length === 0 ? (
+                <div className="p-4 text-center text-gray-500 dark:text-gray-400">
+                  No friends found matching "{searchValue}"
+                </div>
+              ) : (
+                <div className="p-2">
+                  <div className="text-xs font-medium text-gray-600 dark:text-gray-400 px-2 py-1 mb-2">
+                    {filteredPeople.length} friend{filteredPeople.length !== 1 ? 's' : ''} found
+                  </div>
                   {filteredPeople.map((person) => {
                     const availability = allPeopleAvailability.get(person.id);
+                    const isSelected = isPersonSelected(person.id);
                     return (
-                      <CommandItem
+                      <div
                         key={person.id}
-                        onSelect={() => handlePersonSelect(person)}
-                        className="flex items-center gap-3 p-2"
+                        className={cn(
+                          "flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors",
+                          "hover:bg-gray-50 dark:hover:bg-gray-800",
+                          isSelected && "bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700"
+                        )}
+                        onClick={() => handlePersonSelect(person)}
                       >
-                        <Avatar className="w-8 h-8">
+                        <Avatar className="w-10 h-10">
                           <AvatarImage src={person.avatar} alt={person.name} />
                           <AvatarFallback>
                             {person.name.split(" ").map(n => n[0]).join("")}
@@ -415,6 +388,11 @@ export default function PeopleSelectorWithAvailability({
                           <div className="font-medium text-sm flex items-center gap-2">
                             {person.name}
                             {availability && getAvailabilityIcon(availability.status)}
+                            {isSelected && (
+                              <Badge variant="secondary" className="text-xs">
+                                Added
+                              </Badge>
+                            )}
                           </div>
                           <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
                             {person.email}
@@ -426,34 +404,59 @@ export default function PeopleSelectorWithAvailability({
                           )}
                           {availability && availability.conflictReason && (
                             <div className="text-xs text-yellow-600 mt-1">
-                              {availability.conflictReason}
+                              ⚠️ {availability.conflictReason}
                             </div>
                           )}
                         </div>
-                        <Check
-                          className={cn(
-                            "h-4 w-4",
-                            isPersonSelected(person.id) ? "opacity-100" : "opacity-0"
+                        <div className="flex items-center gap-2">
+                          {isSelected ? (
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handlePersonRemove(person.id);
+                              }}
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          ) : (
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 w-8 p-0 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                            >
+                              <UserPlus className="h-4 w-4" />
+                            </Button>
                           )}
-                        />
-                      </CommandItem>
+                        </div>
+                      </div>
                     );
                   })}
-                </CommandGroup>
-              </CommandList>
-            </Command>
-          </PopoverContent>
-        </Popover>
+                </div>
+              )}
+            </div>
+          )}
+          
+          {!searchValue && (
+            <div className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">
+              Start typing to search for friends to invite
+            </div>
+          )}
+        </div>
 
         {/* Summary */}
         {selectedPeople.length > 0 && (
           <p className="text-sm text-gray-600 dark:text-gray-400">
-            {selectedPeople.length} personne(s) seront invitées à cet événement
+            {selectedPeople.length} person(s) will be invited to this event
             {availabilityData && (
               <span className="ml-2">
-                • {availabilityData.summary.available} disponible(s)
+                • {availabilityData.summary.available} available
                 {availabilityData.summary.busy > 0 && (
-                  <span className="text-red-600"> • {availabilityData.summary.busy} occupé(s)</span>
+                  <span className="text-red-600"> • {availabilityData.summary.busy} busy</span>
                 )}
               </span>
             )}
