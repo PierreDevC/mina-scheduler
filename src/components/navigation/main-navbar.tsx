@@ -4,7 +4,6 @@ import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { 
-  LayoutDashboard, 
   Calendar, 
   Users, 
   CalendarDays, 
@@ -34,12 +33,6 @@ interface MainNavbarProps {
 
 const navItems: NavItem[] = [
   { 
-    id: "dashboard", 
-    label: "Dashboard", 
-    shortLabel: "Dash",
-    icon: <LayoutDashboard className="h-4 w-4" />
-  },
-  { 
     id: "calendar", 
     label: "Calendar", 
     shortLabel: "Cal",
@@ -52,16 +45,16 @@ const navItems: NavItem[] = [
     icon: <Clock className="h-4 w-4" />
   },
   { 
-    id: "groups", 
-    label: "Groups", 
-    shortLabel: "Groups",
-    icon: <Users className="h-4 w-4" />
-  },
-  { 
     id: "events", 
     label: "Events", 
     shortLabel: "Events",
     icon: <CalendarDays className="h-4 w-4" />
+  },
+  { 
+    id: "groups", 
+    label: "Groups", 
+    shortLabel: "Groups",
+    icon: <Users className="h-4 w-4" />
   },
   { 
     id: "friends", 

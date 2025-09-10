@@ -1,8 +1,9 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Button } from "@/components/ui/button";
+import { Button } from "../ui/button";
 import { Calendar, Users, BarChart3, Settings } from "lucide-react";
+import React from "react";
 
 const quickActions = [
   {

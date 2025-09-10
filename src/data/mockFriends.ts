@@ -6,28 +6,28 @@ export const mockFriends: Person[] = [
     id: "1",
     name: "Pierre-Sylvestre Cypré",
     email: "pierre@gmail.com",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Pierre",
+    avatar: "https://api.dicebear.com/7.x/lorelei/svg?seed=Pierre&hair=shortFrizzy&accessories=glasses",
     department: "Development"
   },
   {
     id: "2",
     name: "William Descoteaux", 
     email: "william@gmail.com",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=William",
+    avatar: "https://api.dicebear.com/7.x/lorelei/svg?seed=William&hair=frizzy&facialHair=smallBeard",
     department: "Development"
   },
   {
     id: "3",
     name: "Xavier Giguère",
     email: "xavier@gmail.com",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Xavier",
+    avatar: "https://api.dicebear.com/7.x/lorelei/svg?seed=Xavier&hair=short&facialHair=beard&accessories=glasses",
     department: "Development"
   },
   {
     id: "4",
     name: "Alexandre Emond",
     email: "alexandre@gmail.com", 
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Alexandre",
+    avatar: "https://api.dicebear.com/7.x/lorelei/svg?seed=Alexandre&hair=long",
     department: "Development"
   }
 ];

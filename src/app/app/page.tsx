@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import MainNavbar from "@/components/navigation/main-navbar";
-import DashboardView from "@/components/views/dashboard-view";
 import CalendarView from "@/components/views/calendar-view";
 import AvailabilityView from "@/components/views/availability-view";
 import GroupsView from "@/components/views/groups-view";
@@ -53,8 +52,6 @@ export default function AppPage() {
 
   const renderActiveView = () => {
     switch (activeTab) {
-      case "dashboard":
-        return <DashboardView onNavigate={setActiveTab} />;
       case "calendar":
         return <CalendarView />;
       case "availability":
