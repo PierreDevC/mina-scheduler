@@ -4,6 +4,7 @@ import { EventFormData } from "@/types";
 import React, { useEffect, useState } from "react";
 import { UseFormSetValue } from "react-hook-form";
 import { format, setHours, setMinutes, isBefore, addHours } from "date-fns";
+import { motion, AnimatePresence } from "framer-motion";
 
 import { cn } from "@/lib/utils";
 import { Calendar } from "@/components/ui/calendar";
@@ -30,43 +31,38 @@ export default function SelectDate({
   data?: { startDate: Date; endDate: Date };
   setValue: UseFormSetValue<EventFormData>;
 }) {
+  const [startDate, setStartDate] = useState<Date>(() => {
+    const date = data?.startDate instanceof Date ? data.startDate : new Date();
+    return isNaN(date.getTime()) ? new Date() : date;
+  });
+  
+  const [endDate, setEndDate] = useState<Date>(() => {
+    const date = data?.endDate instanceof Date ? data.endDate : new Date();
+    return isNaN(date.getTime()) ? new Date() : date;
+  });
 
-  console.log("data", data);
-  const [startDate, setStartDate] = useState<Date>(
-    data?.startDate instanceof Date ? data.startDate : new Date()
-  );
+  const [showStartCalendar, setShowStartCalendar] = useState(false);
+  const [showEndCalendar, setShowEndCalendar] = useState(false);
   
-  const [endDate, setEndDate] = useState<Date>(
-    data?.endDate instanceof Date ? data.endDate : new Date()
-  );
+  // Only load initial data once, ignore subsequent prop changes to prevent interference with user edits
+  const [hasInitialized, setHasInitialized] = useState(false);
   
-  // Update state when data changes (prevent unnecessary updates)
   useEffect(() => {
-    if (data?.startDate instanceof Date && startDate.getTime() !== data.startDate.getTime()) {
+    if (!hasInitialized && data?.startDate instanceof Date && !isNaN(data.startDate.getTime())) {
+      console.log("📅 SelectDate: Initial load of startDate:", data.startDate);
       setStartDate(data.startDate);
+      setHasInitialized(true);
     }
-    if (data?.endDate instanceof Date && endDate.getTime() !== data.endDate.getTime()) {
+    if (!hasInitialized && data?.endDate instanceof Date && !isNaN(data.endDate.getTime())) {
+      console.log("📅 SelectDate: Initial load of endDate:", data.endDate);
       setEndDate(data.endDate);
     }
-  }, [data, startDate, endDate]);
+  }, [data?.startDate, data?.endDate, hasInitialized]); // Only depend on the actual date values, not the entire data object
   
-  // Update form values when dates change (debounced to prevent loops)
-  useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      setValue("startDate", startDate);
-      
-      // Ensure end date is not before start date
-      if (isBefore(endDate, startDate)) {
-        const newEndDate = new Date(startDate);
-        newEndDate.setHours(startDate.getHours() + 1);
-        setEndDate(newEndDate);
-        setValue("endDate", newEndDate);
-      } else {
-        setValue("endDate", endDate);
-      }
-    }, 0);
-
-    return () => clearTimeout(timeoutId);
+  // Update form values only when dates are actually changed by user interaction
+  const updateFormValues = React.useCallback(() => {
+    setValue("startDate", startDate);
+    setValue("endDate", endDate);
   }, [startDate, endDate, setValue]);
 
   // Time options for select
@@ -98,82 +94,122 @@ export default function SelectDate({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Start Date Picker */}
         <div className="space-y-2">
-          <Label htmlFor="startDate">Start Date</Label>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                id="startDate"
-                variant="outline"
-                className={cn(
-                  "w-full justify-start text-left font-normal",
-                  !startDate && "text-muted-foreground"
-                )}
+          <Label>Start Date</Label>
+          <Button
+            variant="outline"
+            className={cn(
+              "w-full justify-start text-left font-normal",
+              !startDate && "text-muted-foreground"
+            )}
+            onClick={() => setShowStartCalendar(!showStartCalendar)}
+          >
+            <CalendarIcon className="mr-2 h-4 w-4" />
+            {startDate ? format(startDate, "PPP") : <span>Pick a date</span>}
+          </Button>
+          <AnimatePresence>
+            {showStartCalendar && (
+              <motion.div
+                initial={{ opacity: 0, height: 0, y: -10 }}
+                animate={{ opacity: 1, height: "auto", y: 0 }}
+                exit={{ opacity: 0, height: 0, y: -10 }}
+                transition={{ duration: 0.2, ease: "easeInOut" }}
+                className="overflow-hidden"
               >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {startDate ? format(startDate, "PPP") : <span>Pick a date</span>}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <Calendar
-                mode="single"
-                selected={startDate}
-                onSelect={(date) => {
-                  if (date) {
-                    // Preserve the time when changing the date
-                    const newDate = new Date(date);
-                    newDate.setHours(
-                      startDate.getHours(),
-                      startDate.getMinutes(),
-                      0,
-                      0
-                    );
-                    setStartDate(newDate);
-                  }
-                }}
-                initialFocus
-              />
-            </PopoverContent>
-          </Popover>
+                <Calendar
+                  mode="single"
+                  selected={startDate}
+                  onSelect={(date) => {
+                    console.log("🗓️ Start date clicked:", date);
+                    console.log("🗓️ Current startDate before change:", startDate);
+                    if (date && !isNaN(date.getTime())) {
+                      // Preserve the time when changing the date
+                      const newDate = new Date(date);
+                      newDate.setHours(
+                        startDate.getHours(),
+                        startDate.getMinutes(),
+                        0,
+                        0
+                      );
+                      console.log("🗓️ New startDate created:", newDate);
+                      // Validate the new date before setting
+                      if (!isNaN(newDate.getTime())) {
+                        setStartDate(newDate);
+                        setShowStartCalendar(false);
+                        console.log("✅ Start date state updated");
+                        // Update form values after state change
+                        setTimeout(() => {
+                          setValue("startDate", newDate);
+                          console.log("✅ Form value updated for startDate");
+                        }, 0);
+                      }
+                    }
+                  }}
+                  className="rounded-md border shadow-sm"
+                  captionLayout="dropdown"
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
         {/* End Date Picker */}
         <div className="space-y-2">
-          <Label htmlFor="endDate">End Date</Label>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                id="endDate"
-                variant="outline"
-                className={cn(
-                  "w-full justify-start text-left font-normal",
-                  !endDate && "text-muted-foreground"
-                )}
+          <Label>End Date</Label>
+          <Button
+            variant="outline"
+            className={cn(
+              "w-full justify-start text-left font-normal",
+              !endDate && "text-muted-foreground"
+            )}
+            onClick={() => setShowEndCalendar(!showEndCalendar)}
+          >
+            <CalendarIcon className="mr-2 h-4 w-4" />
+            {endDate ? format(endDate, "PPP") : <span>Pick a date</span>}
+          </Button>
+          <AnimatePresence>
+            {showEndCalendar && (
+              <motion.div
+                initial={{ opacity: 0, height: 0, y: -10 }}
+                animate={{ opacity: 1, height: "auto", y: 0 }}
+                exit={{ opacity: 0, height: 0, y: -10 }}
+                transition={{ duration: 0.2, ease: "easeInOut" }}
+                className="overflow-hidden"
               >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {endDate ? format(endDate, "PPP") : <span>Pick a date</span>}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <Calendar
-                mode="single"
-                selected={endDate}
-                onSelect={(date) => {
-                  if (date) {
-                    // Preserve the time when changing the date
-                    const newDate = new Date(date);
-                    newDate.setHours(
-                      endDate.getHours(),
-                      endDate.getMinutes(),
-                      0,
-                      0
-                    );
-                    setEndDate(newDate);
-                  }
-                }}
-                initialFocus
-              />
-            </PopoverContent>
-          </Popover>
+                <Calendar
+                  mode="single"
+                  selected={endDate}
+                  onSelect={(date) => {
+                    console.log("🗓️ End date clicked:", date);
+                    console.log("🗓️ Current endDate before change:", endDate);
+                    if (date && !isNaN(date.getTime())) {
+                      // Preserve the time when changing the date
+                      const newDate = new Date(date);
+                      newDate.setHours(
+                        endDate.getHours(),
+                        endDate.getMinutes(),
+                        0,
+                        0
+                      );
+                      console.log("🗓️ New endDate created:", newDate);
+                      // Validate the new date before setting
+                      if (!isNaN(newDate.getTime())) {
+                        setEndDate(newDate);
+                        setShowEndCalendar(false);
+                        console.log("✅ End date state updated");
+                        // Update form values after state change
+                        setTimeout(() => {
+                          setValue("endDate", newDate);
+                          console.log("✅ Form value updated for endDate");
+                        }, 0);
+                      }
+                    }
+                  }}
+                  className="rounded-md border shadow-sm"
+                  captionLayout="dropdown"
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
 
@@ -189,7 +225,12 @@ export default function SelectDate({
                 const period = getPeriod(startDate.getHours());
                 const newHour = get24HourFormat(hour, period);
                 const newDate = setHours(startDate, newHour);
-                setStartDate(newDate);
+                if (!isNaN(newDate.getTime())) {
+                  setStartDate(newDate);
+                  setTimeout(() => {
+                    setValue("startDate", newDate);
+                  }, 0);
+                }
               }}
             >
               <SelectTrigger className="w-[100px]">
@@ -208,7 +249,12 @@ export default function SelectDate({
               value={startDate.getMinutes().toString()}
               onValueChange={(value) => {
                 const newDate = setMinutes(startDate, parseInt(value, 10));
-                setStartDate(newDate);
+                if (!isNaN(newDate.getTime())) {
+                  setStartDate(newDate);
+                  setTimeout(() => {
+                    setValue("startDate", newDate);
+                  }, 0);
+                }
               }}
             >
               <SelectTrigger className="w-[100px]">
@@ -228,7 +274,12 @@ export default function SelectDate({
                 const hour = get12HourFormat(startDate.getHours());
                 const newHour = get24HourFormat(hour, value);
                 const newDate = setHours(startDate, newHour);
-                setStartDate(newDate);
+                if (!isNaN(newDate.getTime())) {
+                  setStartDate(newDate);
+                  setTimeout(() => {
+                    setValue("startDate", newDate);
+                  }, 0);
+                }
               }}
             >
               <SelectTrigger className="w-[70px]">
@@ -259,7 +310,12 @@ export default function SelectDate({
                 const period = getPeriod(endDate.getHours());
                 const newHour = get24HourFormat(hour, period);
                 const newDate = setHours(endDate, newHour);
-                setEndDate(newDate);
+                if (!isNaN(newDate.getTime())) {
+                  setEndDate(newDate);
+                  setTimeout(() => {
+                    setValue("endDate", newDate);
+                  }, 0);
+                }
               }}
             >
               <SelectTrigger className="w-[100px]">
@@ -278,7 +334,12 @@ export default function SelectDate({
               value={endDate.getMinutes().toString()}
               onValueChange={(value) => {
                 const newDate = setMinutes(endDate, parseInt(value, 10));
-                setEndDate(newDate);
+                if (!isNaN(newDate.getTime())) {
+                  setEndDate(newDate);
+                  setTimeout(() => {
+                    setValue("endDate", newDate);
+                  }, 0);
+                }
               }}
             >
               <SelectTrigger className="w-[100px]">
@@ -298,7 +359,12 @@ export default function SelectDate({
                 const hour = get12HourFormat(endDate.getHours());
                 const newHour = get24HourFormat(hour, value);
                 const newDate = setHours(endDate, newHour);
-                setEndDate(newDate);
+                if (!isNaN(newDate.getTime())) {
+                  setEndDate(newDate);
+                  setTimeout(() => {
+                    setValue("endDate", newDate);
+                  }, 0);
+                }
               }}
             >
               <SelectTrigger className="w-[70px]">

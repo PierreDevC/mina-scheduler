@@ -15,6 +15,7 @@ import ShowMoreEventsModal from "@/components/schedule/_modals/show-more-events-
 import EventStyled from "../event-component/event-styled";
 import { Event, CustomEventModal } from "@/types";
 import CustomModal from "@/components/ui/custom-modal";
+import { useEventCreationHandler } from "../../handlers/event-creation-handler";
 
 const pageTransitionVariants = {
   enter: (direction: number) => ({
@@ -46,6 +47,9 @@ export default function MonthView({
 }) {
   const { getters, weekStartsOn } = useScheduler();
   const { setOpen } = useModal();
+  const { handleDateClick } = useEventCreationHandler({ 
+    customComponents: { CustomEventModal } 
+  });
 
   const [currentDate, setCurrentDate] = useState(new Date());
   const [direction, setDirection] = useState<number>(0);
@@ -75,44 +79,12 @@ export default function MonthView({
     setCurrentDate(newDate);
   }, [currentDate]);
 
+  // Handle date click using the new event creation handler
   function handleAddEvent(selectedDay: number) {
-    // Create start date at 12:00 AM on the selected day
-    const startDate = new Date(
+    handleDateClick(
       currentDate.getFullYear(),
       currentDate.getMonth(),
-      selectedDay,
-      0,
-      0,
-      0
-    );
-
-    // Create end date at 11:59 PM on the same day
-    const endDate = new Date(
-      currentDate.getFullYear(),
-      currentDate.getMonth(),
-      selectedDay,
-      23,
-      59,
-      59
-    );
-
-    setOpen(
-      <CustomModal title="Add Event">
-        <AddEventModal
-          CustomAddEventModal={
-            CustomEventModal?.CustomAddEventModal?.CustomForm
-          }
-        />
-      </CustomModal>,
-      async () => {
-        return {
-          startDate,
-          endDate,
-          title: "",
-          id: "",
-          variant: "primary",
-        };
-      }
+      selectedDay
     );
   }
 

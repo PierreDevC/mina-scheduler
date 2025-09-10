@@ -29,18 +29,27 @@ export default function AddEventModal({
 }) {
   const { setClose, data } = useModal();
 
+  // Get the actual modal data (stored under "default" key)
+  const modalData = data?.default;
+  
+  console.log("🎯 Modal received data:", data);
+  console.log("🎯 Modal data.default:", modalData);
+  console.log("🎯 Full modal data keys:", Object.keys(data || {}));
+  console.log("🎯 StartDate from modalData:", modalData?.startDate);
+  console.log("🎯 EndDate from modalData:", modalData?.endDate);
+
   const [selectedColor, setSelectedColor] = useState<string>(
-    getEventColor(data?.variant || "primary")
+    getEventColor(modalData?.variant || "primary")
   );
   const [selectedPeople, setSelectedPeople] = useState<Person[]>([]);
   const [currentStartDate, setCurrentStartDate] = useState<Date>(() => 
-    data?.default?.startDate || new Date()
+    modalData?.startDate || new Date()
   );
   const [currentEndDate, setCurrentEndDate] = useState<Date>(() => 
-    data?.default?.endDate || new Date()
+    modalData?.endDate || new Date()
   );
 
-  const typedData = data as { default: Event };
+  const typedData = modalData as Event;
 
   const { handlers } = useScheduler();
 
@@ -56,25 +65,29 @@ export default function AddEventModal({
     defaultValues: {
       title: "",
       description: "",
-      startDate: new Date(),
-      endDate: new Date(),
-      variant: data?.variant || "primary",
-      color: data?.color || "blue",
+      startDate: modalData?.startDate || new Date(),
+      endDate: modalData?.endDate || new Date(),
+      variant: "primary",
+      color: "blue",
       invitedPeople: [],
     },
   });
 
-  // For presentation: Use demo dates to show availability
+  // Initialize dates from passed data or use current time
   useEffect(() => {
-    // Set demo times for availability checking (10 AM to 11 AM today)
-    const demoStart = new Date();
-    demoStart.setHours(10, 0, 0, 0);
-    const demoEnd = new Date();
-    demoEnd.setHours(11, 0, 0, 0);
-    
-    setCurrentStartDate(demoStart);
-    setCurrentEndDate(demoEnd);
-  }, []);  // Run only once on mount
+    if (modalData?.startDate && modalData?.endDate) {
+      // Use data from calendar view
+      console.log("📅 Setting dates from modalData:", modalData.startDate, modalData.endDate);
+      setCurrentStartDate(modalData.startDate);
+      setCurrentEndDate(modalData.endDate);
+    } else {
+      // Use current time as default
+      console.log("📅 Using current time as fallback");
+      const now = new Date();
+      setCurrentStartDate(now);
+      setCurrentEndDate(new Date(now.getTime() + 60 * 60 * 1000)); // 1 hour later
+    }
+  }, [modalData]);
 
   // Watch for date changes in the form
   const watchedStartDate = watch("startDate");
@@ -96,25 +109,22 @@ export default function AddEventModal({
     }
   }, [watchedStartDate, watchedEndDate, currentStartDate, currentEndDate]);
 
-  // Reset the form on initialization
+  // Reset form when data becomes available
   useEffect(() => {
-    if (data?.default) {
-      const eventData = data?.default;
-      console.log("eventData", eventData);
+    if (modalData) {
+      console.log("🔄 Resetting form with modalData:", modalData);
       reset({
-        title: eventData.title,
-        description: eventData.description || "",
-        startDate: eventData.startDate,
-        endDate: eventData.endDate,
-        variant: eventData.variant || "primary",
-        color: eventData.color || "blue",
-        invitedPeople: eventData.invitedPeople || [],
+        title: modalData.title || "",
+        description: modalData.description || "",
+        startDate: modalData.startDate || new Date(),
+        endDate: modalData.endDate || new Date(),
+        variant: modalData.variant || "primary",
+        color: modalData.color || "blue",
+        invitedPeople: modalData.invitedPeople || [],
       });
-      setSelectedPeople(eventData.invitedPeople || []);
-      setCurrentStartDate(eventData.startDate);
-      setCurrentEndDate(eventData.endDate);
+      setSelectedPeople(modalData.invitedPeople || []);
     }
-  }, [data, reset]);
+  }, [modalData, reset]);
 
   const colorOptions = [
     { key: "blue", name: "Blue" },
@@ -179,8 +189,8 @@ export default function AddEventModal({
       invitedPeople: selectedPeople,
     };
 
-    if (!typedData?.default?.id) handlers.handleAddEvent(newEvent);
-    else handlers.handleUpdateEvent(newEvent, typedData.default.id);
+    if (!typedData?.id) handlers.handleAddEvent(newEvent);
+    else handlers.handleUpdateEvent(newEvent, typedData.id);
     setClose(); // Close the modal after submission
   };
 
@@ -211,13 +221,24 @@ export default function AddEventModal({
               id="description"
               {...register("description")}
               placeholder="Enter event description"
+              className="resize-none"
+              style={{ 
+                minHeight: '80px',
+                maxHeight: '200px',
+                overflow: 'auto'
+              }}
+              onInput={(e) => {
+                const target = e.target as HTMLTextAreaElement;
+                target.style.height = 'auto';
+                target.style.height = Math.min(target.scrollHeight, 200) + 'px';
+              }}
             />
           </div>
 
           <SelectDate
             data={{
-              startDate: currentStartDate,
-              endDate: currentEndDate,
+              startDate: modalData?.startDate || new Date(),
+              endDate: modalData?.endDate || new Date(),
             }}
             setValue={setValue}
           />

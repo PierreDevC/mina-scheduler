@@ -36,7 +36,7 @@ export default function CalendarView() {
         className="mb-8"
       >
         <h1 className="text-4xl font-bold text-gray-900 dark:text-white">
-          CalendApp
+          Calendar
         </h1>
         <p className="text-gray-600 dark:text-gray-400 mt-2 text-lg">
           Plan and organize your events

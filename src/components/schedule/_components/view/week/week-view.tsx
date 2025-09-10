@@ -10,6 +10,7 @@ import { ArrowLeft, ArrowRight, Maximize2, ChevronLeft, Maximize } from "lucide-
 import clsx from "clsx";
 import { Event, CustomEventModal } from "@/types";
 import CustomModal from "@/components/ui/custom-modal";
+import { useEventCreationHandler } from "../../handlers/event-creation-handler";
 
 const hours = Array.from({ length: 24 }, (_, i) => {
   const hour = i % 12 || 12;
@@ -111,6 +112,9 @@ export default function WeeklyView({
   const [isResizing, setIsResizing] = useState<boolean>(false);
   const [direction, setDirection] = useState<number>(0);
   const { setOpen } = useModal();
+  const { handleDateClick, handleTimeClick } = useEventCreationHandler({ 
+    customComponents: { CustomEventModal } 
+  });
 
   const daysOfWeek = getters?.getDaysInWeek(
     getters?.getWeekNumber(currentDate),
@@ -147,8 +151,13 @@ export default function WeeklyView({
 
   function handleAddEvent(event?: Event) {
     // Create the modal content with the provided event data or defaults
-    const startDate = event?.startDate || new Date();
-    const endDate = event?.endDate || new Date();
+    const defaultStart = new Date();
+    defaultStart.setHours(9, 0, 0, 0); // 9:00 AM
+    const defaultEnd = new Date();
+    defaultEnd.setHours(10, 0, 0, 0); // 10:00 AM
+    
+    const startDate = event?.startDate || defaultStart;
+    const endDate = event?.endDate || defaultEnd;
 
     // Open the modal with the content
     setOpen(
@@ -161,9 +170,11 @@ export default function WeeklyView({
       </CustomModal>,
       async () => {
         return {
-          ...event,
-          startDate,
-          endDate,
+          default: {
+            ...event,
+            startDate,
+            endDate,
+          }
         };
       }
     );
@@ -189,6 +200,16 @@ export default function WeeklyView({
       return;
     }
 
+    // Get the actual date for this day from the week array
+    const targetDate = daysOfWeek[dayIndex % 7];
+    if (!targetDate) {
+      console.error("Invalid day index:", dayIndex);
+      return;
+    }
+
+    console.log("📅 Week view - Day clicked:", targetDate.toDateString());
+    console.log("🕐 Week view - Time clicked:", detailedHour);
+
     // Parse the 12-hour format time
     const [timePart, ampm] = detailedHour.split(" ");
     const [hourStr, minuteStr] = timePart.split(":");
@@ -202,29 +223,21 @@ export default function WeeklyView({
       hours = 0;
     }
 
-    const chosenDay = daysOfWeek[dayIndex % 7].getDate();
-
-    // Ensure day is valid
-    if (chosenDay < 1 || chosenDay > 31) {
-      console.error("Invalid day selected:", chosenDay);
-      return;
-    }
-
-    const date = new Date(
-      currentDate.getFullYear(),
-      currentDate.getMonth(),
-      chosenDay,
+    // Create the precise date and time
+    const startDate = new Date(
+      targetDate.getFullYear(),
+      targetDate.getMonth(),
+      targetDate.getDate(),
       hours,
-      minutes
+      minutes,
+      0,
+      0
     );
 
-    handleAddEvent({
-      startDate: date,
-      endDate: new Date(date.getTime() + 60 * 60 * 1000), // 1-hour duration
-      title: "",
-      id: "",
-      variant: "primary",
-    });
+    console.log("📅 Week view - Created startDate:", startDate);
+
+    // Use the time click handler for precise time selection
+    handleTimeClick(startDate);
   }
 
 
@@ -346,7 +359,7 @@ export default function WeeklyView({
         >
           <div className="hidden sm:flex sticky top-0 left-0 z-30 bg-default-100 rounded-tl-lg h-full border-0 items-center justify-center bg-primary/10">
             <span className="text-xl tracking-tight font-semibold ">
-              Week {getters.getWeekNumber(currentDate)}
+              {currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
             </span>
           </div>
 

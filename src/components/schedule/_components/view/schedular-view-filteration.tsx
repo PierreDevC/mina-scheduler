@@ -15,6 +15,7 @@ import { useModal } from "@/providers/modal-context";
 import { ClassNames, CustomComponents, Views } from "@/types/index";
 import { cn } from "@/lib/utils";
 import CustomModal from "@/components/ui/custom-modal";
+import { useEventCreationHandler } from "../handlers/event-creation-handler";
 
 // Animation settings for Framer Motion
 const animationConfig = {
@@ -39,6 +40,9 @@ export default function SchedulerViewFilteration({
   classNames?: ClassNames;
 }) {
   const { setOpen } = useModal();
+  const { handleAddEventButton } = useEventCreationHandler({ 
+    customComponents: CustomComponents 
+  });
   const [activeView, setActiveView] = useState<string>("month");
   const [clientSide, setClientSide] = useState(false);
 
@@ -68,51 +72,9 @@ export default function SchedulerViewFilteration({
     return () => window && window.removeEventListener("resize", handleResize);
   }, [clientSide]);
 
-  function handleAddEvent(selectedDay?: number) {
-    // Create the modal content with proper data
-    const startDate = new Date(
-      new Date().getFullYear(),
-      new Date().getMonth(),
-      selectedDay ?? new Date().getDate(),
-      0,
-      0,
-      0,
-      0
-    );
-
-    const endDate = new Date(
-      new Date().getFullYear(),
-      new Date().getMonth(),
-      selectedDay ?? new Date().getDate(),
-      23,
-      59,
-      59,
-      999
-    );
-
-    // Create a wrapper component to handle data passing
-    const ModalWrapper = () => {
-      const title =
-        CustomComponents?.CustomEventModal?.CustomAddEventModal?.title ||
-        "Add Event";
-
-      return (
-        <div>
-          <h2 className="text-xl font-semibold mb-4">{title}</h2>
-        </div>
-      );
-    };
-
-    // Open the modal with the content
-    setOpen(
-      <CustomModal title="Add Event">
-        <AddEventModal
-          CustomAddEventModal={
-            CustomComponents?.CustomEventModal?.CustomAddEventModal?.CustomForm
-          }
-        />{" "}
-      </CustomModal>
-    );
+  // Use the new event creation handler for the Add Event button
+  function handleAddEvent() {
+    handleAddEventButton();
   }
 
   const viewsSelector = isMobile ? views?.mobileViews : views?.views;

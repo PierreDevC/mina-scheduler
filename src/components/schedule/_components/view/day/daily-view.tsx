@@ -13,6 +13,7 @@ import { CustomEventModal, Event } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import CustomModal from "@/components/ui/custom-modal";
+import { useEventCreationHandler } from "../../handlers/event-creation-handler";
 
 // Generate hours in 12-hour format
 const hours = Array.from({ length: 24 }, (_, i) => {
@@ -167,6 +168,9 @@ export default function DailyView({
   const [direction, setDirection] = useState<number>(0);
   const { setOpen } = useModal();
   const { getters, handlers } = useScheduler();
+  const { handleTimeClick } = useEventCreationHandler({ 
+    customComponents: { CustomEventModal } 
+  });
 
   const handleMouseMove = useCallback(
     (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
@@ -207,11 +211,15 @@ export default function DailyView({
 
   function handleAddEvent(event?: Event) {
     // Create the modal content with the provided event data or defaults
-    const startDate = event?.startDate || new Date();
-    const endDate = event?.endDate || new Date();
+    const defaultStart = new Date();
+    defaultStart.setHours(9, 0, 0, 0); // 9:00 AM
+    const defaultEnd = new Date();
+    defaultEnd.setHours(10, 0, 0, 0); // 10:00 AM
+    
+    const startDate = event?.startDate || defaultStart;
+    const endDate = event?.endDate || defaultEnd;
 
     // Open the modal with the content
-
     setOpen(
       <CustomModal title="Add Event">
         <AddEventModal
@@ -222,9 +230,11 @@ export default function DailyView({
       </CustomModal>,
       async () => {
         return {
-          ...event,
-          startDate,
-          endDate,
+          default: {
+            ...event,
+            startDate,
+            endDate,
+          }
         };
       }
     );
@@ -235,6 +245,9 @@ export default function DailyView({
       console.error("Detailed hour not provided.");
       return;
     }
+
+    console.log("📅 Day view - Current date:", currentDate.toDateString());
+    console.log("🕐 Day view - Time clicked:", detailedHour);
 
     // Parse the 12-hour format time
     const [timePart, ampm] = detailedHour.split(" ");
@@ -249,29 +262,21 @@ export default function DailyView({
       hours = 0;
     }
 
-    const chosenDay = currentDate.getDate();
-
-    // Ensure day is valid
-    if (chosenDay < 1 || chosenDay > 31) {
-      console.error("Invalid day selected:", chosenDay);
-      return;
-    }
-
-    const date = new Date(
+    // Create the precise date and time for the current day
+    const startDate = new Date(
       currentDate.getFullYear(),
       currentDate.getMonth(),
-      chosenDay,
+      currentDate.getDate(),
       hours,
-      minutes
+      minutes,
+      0,
+      0
     );
 
-    handleAddEvent({
-      startDate: date,
-      endDate: new Date(date.getTime() + 60 * 60 * 1000), // 1-hour duration
-      title: "",
-      id: "",
-      variant: "primary",
-    });
+    console.log("📅 Day view - Created startDate:", startDate);
+
+    // Use the time click handler for precise time selection
+    handleTimeClick(startDate);
   }
 
   const handleNextDay = useCallback(() => {
