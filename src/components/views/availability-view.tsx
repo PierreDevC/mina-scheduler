@@ -175,17 +175,17 @@ export default function AvailabilityView() {
           <div>
             <h1 className="text-4xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
               <Clock className="h-8 w-8 text-blue-600" />
-              Gérer mes disponibilités
+              Manage Availability
             </h1>
             <p className="text-gray-600 dark:text-gray-400 mt-2 text-lg">
-              Définissez vos créneaux de disponibilité pour que vos collègues puissent planifier des réunions avec vous.
+              Set your availability slots so colleagues can schedule meetings with you.
             </p>
           </div>
           
           <div className="flex items-center gap-3">
             {isModified && (
               <Badge variant="secondary" className="text-sm">
-                Modifications non sauvegardées
+                Unsaved changes
               </Badge>
             )}
             <Button
@@ -194,14 +194,14 @@ export default function AvailabilityView() {
               disabled={!isModified}
             >
               <RotateCcw className="h-4 w-4 mr-2" />
-              Réinitialiser
+              Reset
             </Button>
             <Button 
               onClick={handleSave}
               className="bg-blue-600 hover:bg-blue-700"
             >
               <Save className="h-4 w-4 mr-2" />
-              Enregistrer
+              Save
             </Button>
           </div>
         </div>
@@ -216,7 +216,7 @@ export default function AvailabilityView() {
         >
           <h3 className="font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2 text-lg">
             <Sparkles className="h-5 w-5" />
-            Modèles prédéfinis
+            Preset Templates
           </h3>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             {Object.entries(availabilityPresets).map(([key, preset]) => (
@@ -248,15 +248,15 @@ export default function AvailabilityView() {
           <div className="p-6">
             <Tabs value={activeTab} onValueChange={setActiveTab}>
               <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="weekly">Disponibilités hebdomadaires</TabsTrigger>
-                <TabsTrigger value="specific">Dates spécifiques</TabsTrigger>
+                <TabsTrigger value="weekly">Weekly Availability</TabsTrigger>
+                <TabsTrigger value="specific">Specific Dates</TabsTrigger>
               </TabsList>
 
               <TabsContent value="weekly" className="space-y-6 mt-6">
                 {/* Day Selection */}
                 <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
                   <h4 className="font-semibold text-gray-900 dark:text-white mb-3">
-                    Sélectionnez vos jours de disponibilité
+                    Select your availability days
                   </h4>
                   <div className="grid grid-cols-7 gap-3">
                     {[0, 1, 2, 3, 4, 5, 6].map(dayOfWeek => {
@@ -270,7 +270,7 @@ export default function AvailabilityView() {
                           className="h-16 flex flex-col items-center justify-center"
                         >
                           <span className="text-sm font-medium">{getDayName(dayOfWeek).slice(0, 3)}</span>
-                          {isSelected && <span className="text-xs opacity-75">Actif</span>}
+                          {isSelected && <span className="text-xs opacity-75">Active</span>}
                         </Button>
                       );
                     })}
@@ -281,7 +281,7 @@ export default function AvailabilityView() {
                 {weeklySlots.length > 0 && (
                   <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6">
                     <h4 className="font-semibold text-gray-900 dark:text-white mb-6 text-lg">
-                      Configuration des créneaux horaires
+                      Time Slot Configuration
                     </h4>
                     
                     <div className="grid gap-6">
@@ -305,7 +305,7 @@ export default function AvailabilityView() {
                                 className="bg-white dark:bg-gray-800"
                               >
                                 <Plus className="h-4 w-4 mr-2" />
-                                Ajouter un créneau
+                                Add time slot
                               </Button>
                             </div>
 
@@ -319,7 +319,7 @@ export default function AvailabilityView() {
                                 >
                                   <div className="flex items-center gap-3 flex-1">
                                     <div className="flex items-center gap-2">
-                                      <Label className="text-sm font-medium min-w-[24px]">De</Label>
+                                      <Label className="text-sm font-medium min-w-[24px]">From</Label>
                                       <Input
                                         type="time"
                                         value={timeSlot.startTime}
@@ -328,7 +328,7 @@ export default function AvailabilityView() {
                                       />
                                     </div>
                                     <div className="flex items-center gap-2">
-                                      <Label className="text-sm font-medium min-w-[16px]">à</Label>
+                                      <Label className="text-sm font-medium min-w-[16px]">to</Label>
                                       <Input
                                         type="time"
                                         value={timeSlot.endTime}
@@ -337,11 +337,11 @@ export default function AvailabilityView() {
                                       />
                                     </div>
                                     <div className="text-sm text-gray-600 dark:text-gray-400 ml-4">
-                                      Durée: {(() => {
+                                      Duration: {(() => {
                                         const start = new Date(`2000-01-01T${timeSlot.startTime}`);
                                         const end = new Date(`2000-01-01T${timeSlot.endTime}`);
                                         const diff = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
-                                        return diff > 0 ? `${diff}h` : "Invalide";
+                                        return diff > 0 ? `${diff}h` : "Invalid";
                                       })()}
                                     </div>
                                   </div>
@@ -369,7 +369,7 @@ export default function AvailabilityView() {
                 {weeklySlots.length === 0 && (
                   <div className="text-center py-12 text-gray-500 dark:text-gray-400">
                     <Calendar className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                    <p>Sélectionnez les jours de la semaine où vous êtes disponible</p>
+                    <p>Select the days of the week when you are available</p>
                   </div>
                 )}
               </TabsContent>
@@ -377,8 +377,8 @@ export default function AvailabilityView() {
               <TabsContent value="specific" className="space-y-4 mt-6">
                 <div className="text-center py-12 text-gray-500 dark:text-gray-400">
                   <Calendar className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p>Fonctionnalité pour dates spécifiques</p>
-                  <p className="text-sm">À venir dans une prochaine version</p>
+                  <p>Specific dates functionality</p>
+                  <p className="text-sm">Coming in a future version</p>
                 </div>
               </TabsContent>
             </Tabs>

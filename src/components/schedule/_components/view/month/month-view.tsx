@@ -291,10 +291,12 @@ export default function MonthView({
 
                   {/* Hover Text */}
                   {dayEvents.length === 0 && (
-                    <div className="absolute inset-0 bg-primary/20 bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                      <span className="text-black tracking-tighter text-lg font-semibold">
-                        Add Event
-                      </span>
+                    <div className="absolute inset-0 bg-primary/20 bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      <div className="flex items-center justify-center sm:justify-start h-full">
+                        <span className="text-gray-700 tracking-tighter text-sm sm:text-lg font-semibold sm:ml-3">
+                          Add Event
+                        </span>
+                      </div>
                     </div>
                   )}
                 </Card>

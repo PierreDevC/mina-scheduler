@@ -59,12 +59,12 @@ export const mockUserAvailability: UserAvailability = {
 
 // Helper functions
 export const getDayName = (dayOfWeek: number): string => {
-  const days = ["Dimanche", "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"];
+  const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
   return days[dayOfWeek];
 };
 
 export const getShortDayName = (dayOfWeek: number): string => {
-  const days = ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"];
+  const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
   return days[dayOfWeek];
 };
 
@@ -87,13 +87,13 @@ export const createEmptyAvailabilitySlot = (dayOfWeek: number): AvailabilitySlot
 // Preset availability patterns
 export const availabilityPresets = {
   fullTime: {
-    name: "Temps plein (9h-17h)",
-    description: "Lundi à Vendredi, 9h-17h avec pause déjeuner",
+    name: "Full-time (9am-5pm)",
+    description: "Monday to Friday, 9am-5pm with lunch break",
     slots: defaultAvailabilitySlots
   },
   partTime: {
-    name: "Temps partiel (9h-13h)",
-    description: "Lundi à Vendredi, matinées seulement",
+    name: "Part-time (9am-1pm)",
+    description: "Monday to Friday, mornings only",
     slots: [1, 2, 3, 4, 5].map(day => ({
       id: `part-time-${day}`,
       dayOfWeek: day,
@@ -102,8 +102,8 @@ export const availabilityPresets = {
     }))
   },
   flexible: {
-    name: "Horaires flexibles",
-    description: "Disponibilité variable selon les jours",
+    name: "Flexible hours",
+    description: "Variable availability depending on the day",
     slots: [
       {
         id: "flex-mon",

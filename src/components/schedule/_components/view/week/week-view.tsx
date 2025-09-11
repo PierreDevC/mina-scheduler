@@ -357,13 +357,140 @@ export default function WeeklyView({
           }}
           className={"grid use-automation-zoom-in grid-cols-1 sm:grid-cols-8 gap-0"}
         >
+          {/* Mobile Week View - Vertical Stack */}
+          <div className="block sm:hidden">
+            <div className="space-y-4">
+              {daysOfWeek.map((day, dayIndex) => {
+                const dayEvents = getters.getEventsForDay(
+                  day.getDate(),
+                  currentDate
+                );
+                const isToday = new Date().getDate() === day.getDate() &&
+                  new Date().getMonth() === currentDate.getMonth() &&
+                  new Date().getFullYear() === currentDate.getFullYear();
+
+                return (
+                  <motion.div
+                    key={`mobile-day-${dayIndex}`}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: dayIndex * 0.1 }}
+                    className={`bg-white dark:bg-gray-800 rounded-lg border ${
+                      isToday ? 'border-blue-500 shadow-md' : 'border-gray-200 dark:border-gray-700'
+                    } overflow-hidden`}
+                  >
+                    {/* Day Header */}
+                    <div className={`p-4 ${isToday ? 'bg-blue-50 dark:bg-blue-900/20' : 'bg-gray-50 dark:bg-gray-800'} border-b border-gray-200 dark:border-gray-700`}>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <div className="text-sm text-gray-500 dark:text-gray-400">
+                            {getters.getDayName(day.getDay())}
+                          </div>
+                          <div className={`text-xl font-semibold ${isToday ? 'text-blue-600 dark:text-blue-400' : 'text-gray-900 dark:text-white'}`}>
+                            {day.getDate()}
+                          </div>
+                        </div>
+                        <div className="text-sm text-gray-500 dark:text-gray-400">
+                          {dayEvents?.length || 0} event{dayEvents?.length !== 1 ? 's' : ''}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Events List */}
+                    <div className="p-4 space-y-3">
+                      {dayEvents && dayEvents.length > 0 ? (
+                        <>
+                          {dayEvents.slice(0, 3).map((event, eventIndex) => (
+                            <motion.div
+                              key={event.id}
+                              initial={{ opacity: 0, x: -20 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              transition={{ delay: (dayIndex * 0.1) + (eventIndex * 0.05) }}
+                              className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3 border-l-4 border-blue-500"
+                            >
+                              <div className="flex items-center justify-between">
+                                <div className="flex-1">
+                                  <div className="font-medium text-gray-900 dark:text-white text-sm">
+                                    {event.title || 'Untitled Event'}
+                                  </div>
+                                  <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                    {event.startDate.toLocaleTimeString('en-US', { 
+                                      hour: 'numeric', 
+                                      minute: '2-digit',
+                                      hour12: true 
+                                    })} - {event.endDate.toLocaleTimeString('en-US', { 
+                                      hour: 'numeric', 
+                                      minute: '2-digit',
+                                      hour12: true 
+                                    })}
+                                  </div>
+                                </div>
+                                <div className={`w-3 h-3 rounded-full ${
+                                  event.variant === 'primary' ? 'bg-blue-500' :
+                                  event.variant === 'danger' ? 'bg-red-500' :
+                                  event.variant === 'success' ? 'bg-green-500' :
+                                  event.variant === 'warning' ? 'bg-yellow-500' :
+                                  'bg-gray-500'
+                                }`} />
+                              </div>
+                            </motion.div>
+                          ))}
+                          
+                          {dayEvents.length > 3 && (
+                            <div className="text-center">
+                              <button 
+                                className="text-blue-600 dark:text-blue-400 text-sm font-medium"
+                                onClick={() => {
+                                  setOpen(
+                                    <CustomModal title={`${getters.getDayName(day.getDay())}, ${day.getDate()}`}>
+                                      <div className="space-y-3 p-4 max-h-[70vh] overflow-y-auto">
+                                        {dayEvents.map((event) => (
+                                          <EventStyled
+                                            key={event.id}
+                                            event={{
+                                              ...event,
+                                              CustomEventComponent,
+                                              minmized: false,
+                                            }}
+                                            CustomEventModal={CustomEventModal}
+                                          />
+                                        ))}
+                                      </div>
+                                    </CustomModal>
+                                  );
+                                }}
+                              >
+                                +{dayEvents.length - 3} more events
+                              </button>
+                            </div>
+                          )}
+                        </>
+                      ) : (
+                        <div className="text-center py-8">
+                          <div className="text-gray-400 dark:text-gray-500 text-sm">No events</div>
+                          <button
+                            onClick={() => handleAddEventWeek(dayIndex, "9:00 AM")}
+                            className="mt-2 text-blue-600 dark:text-blue-400 text-sm font-medium"
+                          >
+                            Add event
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Desktop Week View */}
           <div className="hidden sm:flex sticky top-0 left-0 z-30 bg-default-100 rounded-tl-lg h-full border-0 items-center justify-center bg-primary/10">
             <span className="text-xl tracking-tight font-semibold ">
               {currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
             </span>
           </div>
 
-          <div className="col-span-1 sm:col-span-7 flex flex-col relative">
+          <div className="hidden sm:flex col-span-1 sm:col-span-7 flex-col relative">
             <div 
               className="grid gap-0 flex-grow bg-primary/10 rounded-r-lg sm:rounded-r-lg rounded-lg overflow-x-auto" 
               style={{ 
@@ -579,7 +706,7 @@ export default function WeeklyView({
             ref={hoursColumnRef}
             onMouseMove={handleMouseMove}
             onMouseLeave={() => setDetailedHour(null)}
-            className="relative grid grid-cols-1 sm:grid-cols-8 col-span-1 sm:col-span-8"
+            className="hidden sm:grid relative grid-cols-1 sm:grid-cols-8 col-span-1 sm:col-span-8"
           >
             <div className="hidden sm:block col-span-1 bg-default-50 hover:bg-default-100 transition duration-400">
               {hours.map((hour, index) => (
