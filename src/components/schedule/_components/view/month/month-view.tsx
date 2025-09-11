@@ -223,6 +223,13 @@ export default function MonthView({
 
           {daysInMonth.map((dayObj) => {
             const dayEvents = getters.getEventsForDay(dayObj.day, currentDate);
+            
+            // Separate all-day and timed events
+            const allDayEvents = dayEvents.filter(event => event.isAllDay);
+            const timedEvents = dayEvents.filter(event => !event.isAllDay);
+            
+            // Prioritize all-day events, then timed events
+            const sortedEvents = [...allDayEvents, ...timedEvents];
 
             return (
               <motion.div
@@ -234,12 +241,13 @@ export default function MonthView({
                 exit="exit"
               >
                 <Card
-                  className="shadow-md cursor-pointer overflow-hidden relative flex p-4 border h-full"
+                  className="shadow-md cursor-pointer overflow-hidden relative flex flex-col p-2 border h-full"
                   onClick={() => handleAddEvent(dayObj.day)}
                 >
+                  {/* Day number */}
                   <div
                     className={clsx(
-                      "font-semibold relative text-3xl mb-1",
+                      "font-semibold text-right text-lg mb-1",
                       dayEvents.length > 0
                         ? "text-primary-600"
                         : "text-muted-foreground",
@@ -252,19 +260,42 @@ export default function MonthView({
                   >
                     {dayObj.day}
                   </div>
-                  <div className="flex-grow flex flex-col gap-2 w-full">
+
+                  {/* All-day events section */}
+                  {allDayEvents.length > 0 && (
+                    <div className="mb-1">
+                      {allDayEvents.slice(0, 2).map((event, index) => (
+                        <div
+                          key={event.id}
+                          className={clsx(
+                            "text-xs px-1 py-0.5 mb-1 rounded text-white font-medium truncate",
+                            event.variant === "primary" && "bg-blue-500",
+                            event.variant === "success" && "bg-green-500",
+                            event.variant === "warning" && "bg-yellow-500",
+                            event.variant === "danger" && "bg-red-500",
+                            !event.variant && "bg-blue-500"
+                          )}
+                        >
+                          🌅 {event.title}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Timed events section */}
+                  <div className="flex-grow flex flex-col gap-1">
                     <AnimatePresence mode="wait">
-                      {dayEvents?.length > 0 && (
+                      {timedEvents?.length > 0 && (
                         <motion.div
-                          key={dayEvents[0].id}
-                          initial={{ opacity: 0, y: 20 }}
+                          key={timedEvents[0].id}
+                          initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: -20 }}
+                          exit={{ opacity: 0, y: -10 }}
                           transition={{ duration: 0.3 }}
                         >
                           <EventStyled
                             event={{
-                              ...dayEvents[0],
+                              ...timedEvents[0],
                               CustomEventComponent,
                               minmized: true,
                             }}
@@ -273,27 +304,27 @@ export default function MonthView({
                         </motion.div>
                       )}
                     </AnimatePresence>
-                    {dayEvents.length > 1 && (
-                      <Badge
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleShowMoreEvents(dayEvents);
-                        }}
-                        variant="outline"
-                        className="hover:bg-default-200 absolute right-2 text-xs top-2 transition duration-300"
-                      >
-                        {dayEvents.length > 1
-                          ? `+${dayEvents.length - 1}`
-                          : " "}
-                      </Badge>
-                    )}
                   </div>
+
+                  {/* More events badge */}
+                  {dayEvents.length > (allDayEvents.length > 0 ? 3 : 1) && (
+                    <Badge
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleShowMoreEvents(dayEvents);
+                      }}
+                      variant="outline"
+                      className="hover:bg-default-200 absolute left-1 text-xs top-1 transition duration-300"
+                    >
+                      +{dayEvents.length - (allDayEvents.length > 0 ? 3 : 1)}
+                    </Badge>
+                  )}
 
                   {/* Hover Text */}
                   {dayEvents.length === 0 && (
                     <div className="absolute inset-0 bg-primary/20 bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                      <div className="flex items-center justify-center sm:justify-start h-full">
-                        <span className="text-gray-700 tracking-tighter text-sm sm:text-lg font-semibold sm:ml-3">
+                      <div className="flex items-center justify-center h-full">
+                        <span className="text-gray-700 tracking-tighter text-xs font-semibold">
                           Add Event
                         </span>
                       </div>

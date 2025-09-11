@@ -70,6 +70,7 @@ export default function AddEventModal({
       variant: "primary",
       color: "blue",
       invitedPeople: [],
+      isAllDay: false,
     },
   });
 
@@ -121,6 +122,7 @@ export default function AddEventModal({
         variant: modalData.variant || "primary",
         color: modalData.color || "blue",
         invitedPeople: modalData.invitedPeople || [],
+        isAllDay: modalData.isAllDay || false,
       });
       setSelectedPeople(modalData.invitedPeople || []);
     }
@@ -187,6 +189,7 @@ export default function AddEventModal({
       variant: formData.variant,
       description: formData.description,
       invitedPeople: selectedPeople,
+      isAllDay: formData.isAllDay,
     };
 
     if (!typedData?.id) handlers.handleAddEvent(newEvent);

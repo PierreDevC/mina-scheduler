@@ -484,208 +484,103 @@ export default function WeeklyView({
           </div>
 
           {/* Desktop Week View */}
-          <div className="hidden sm:flex sticky top-0 left-0 z-30 bg-default-100 rounded-tl-lg h-full border-0 items-center justify-center bg-primary/10">
+          <div className="hidden sm:flex sticky top-0 left-0 z-30 bg-default-100 rounded-tl-lg h-full border-0 items-center justify-center">
             <span className="text-xl tracking-tight font-semibold ">
               {currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
             </span>
           </div>
 
           <div className="hidden sm:flex col-span-1 sm:col-span-7 flex-col relative">
+            {/* Day Headers */}
             <div 
-              className="grid gap-0 flex-grow bg-primary/10 rounded-r-lg sm:rounded-r-lg rounded-lg overflow-x-auto" 
+              className="grid gap-0 bg-default-100 rounded-t-lg overflow-x-auto" 
               style={{ 
                 gridTemplateColumns: typeof window !== 'undefined' && window.innerWidth <= 640 ? 'repeat(7, minmax(120px, 1fr))' : colWidth.map(w => `${w}fr`).join(' '),
                 transition: isResizing ? 'none' : 'grid-template-columns 0.3s ease-in-out'
               }}
             >
-              {daysOfWeek.map((day, idx) => (
-                <div key={idx} className="relative group flex flex-col">
-                  <div className="sticky bg-default-100 top-0 z-20 flex-grow flex items-center justify-center">
-                    <div className="text-center p-2 sm:p-4">
-                      <div className="text-sm sm:text-lg font-semibold">
-                        <span className="hidden sm:inline">{getters.getDayName(day.getDay())}</span>
-                        <span className="sm:hidden">{getters.getDayNameShort(day.getDay())}</span>
-                      </div>
-                      <div
-                        className={clsx(
-                          "text-sm sm:text-lg font-semibold",
-                          new Date().getDate() === day.getDate() &&
-                            new Date().getMonth() === currentDate.getMonth() &&
-                            new Date().getFullYear() === currentDate.getFullYear()
-                            ? "text-secondary-500"
-                            : ""
-                        )}
-                      >
-                        {day.getDate()}
+              {daysOfWeek.map((day, idx) => {
+                // Get all-day events for this specific day
+                const dayEvents = getters.getEventsForDay(day.getDate(), day);
+                const allDayEvents = dayEvents?.filter(event => event.isAllDay) || [];
+                const hasMoreAllDayEvents = allDayEvents.length > 1;
+                
+                return (
+                  <div key={idx} className="relative group flex flex-col">
+                    <div className="sticky bg-default-100 top-0 z-20 flex-grow flex flex-col items-center justify-center">
+                      <div className="text-center p-2 sm:p-4">
+                        <div className="text-sm sm:text-lg font-semibold">
+                          <span className="hidden sm:inline">{getters.getDayName(day.getDay())}</span>
+                          <span className="sm:hidden">{getters.getDayNameShort(day.getDay())}</span>
+                        </div>
+                        <div
+                          className={clsx(
+                            "text-sm sm:text-lg font-semibold",
+                            new Date().getDate() === day.getDate() &&
+                              new Date().getMonth() === currentDate.getMonth() &&
+                              new Date().getFullYear() === currentDate.getFullYear()
+                              ? "text-secondary-500"
+                              : ""
+                          )}
+                        >
+                          {day.getDate()}
+                        </div>
                       </div>
                       
-                      {/* Fullscreen icon that appears on hover */}
-                      <div 
-                        className="absolute top-5 right-10 cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          
-                          // Set the selected day
-                          const selectedDay = new Date(
-                            currentDate.getFullYear(),
-                            currentDate.getMonth(),
-                            day.getDate()
-                          );
-                          
-                          // Get events for the selected day
-                          const dayEvents = getters.getEventsForDay(
-                            day.getDate(),
-                            currentDate
-                          );
-                          
-                          setOpen(
-                            <CustomModal title={`${getters.getDayName(day.getDay())} ${day.getDate()}, ${selectedDay.getFullYear()}`}>
-                              <div className="flex flex-col space-y-4 p-4">
-                                <div className="flex items-center mb-4">
-                                  <ChevronLeft 
-                                    className="cursor-pointer hover:text-primary mr-2" 
-                                    onClick={() => setOpen(null)}
-                                  />
-                                  <h2 className="text-2xl font-bold">{selectedDay.toDateString()}</h2>
-                                </div>
-                                
-                                {dayEvents && dayEvents.length > 0 ? (
-                                  <div className="space-y-4">
-                                    {/* Timeline view */}
-                                    <div className="relative bg-default-50 rounded-lg p-4 min-h-[500px]">
-                                      <div className="grid grid-cols-[100px_1fr] h-full">
-                                        {/* Hours column */}
-                                        <div className="flex flex-col">
-                                          {hours.map((hour, index) => (
-                                            <div
-                                              key={`hour-${index}`}
-                                              className="h-16 p-2 text-sm text-muted-foreground border-r border-b border-default-200"
-                                            >
-                                              {hour}
-                                            </div>
-                                          ))}
-                                        </div>
-                                        
-                                        {/* Events column */}
-                                        <div className="relative">
-                                          {/* Hour grid lines */}
-                                          {Array.from({ length: 24 }).map((_, index) => (
-                                            <div
-                                              key={`grid-${index}`}
-                                              className="h-16 border-b border-default-200"
-                                            />
-                                          ))}
-                                          
-                                          {/* Display events */}
-                                          {dayEvents.map((event) => {
-                                            // Calculate time groups
-                                            const timeGroups = groupEventsByTimePeriod(dayEvents);
-                                            
-                                            // Find which time group this event belongs to
-                                            let eventsInSamePeriod = 1;
-                                            let periodIndex = 0;
-                                            
-                                            for (let i = 0; i < timeGroups.length; i++) {
-                                              const groupIndex = timeGroups[i].findIndex(e => e.id === event.id);
-                                              if (groupIndex !== -1) {
-                                                eventsInSamePeriod = timeGroups[i].length;
-                                                periodIndex = groupIndex;
-                                                break;
-                                              }
-                                            }
-                                            
-                                            // Get styling for this event
-                                            const { height, top, left, maxWidth, minWidth } = handlers.handleEventStyling(
-                                              event,
-                                              dayEvents,
-                                              {
-                                                eventsInSamePeriod,
-                                                periodIndex,
-                                                adjustForPeriod: true
-                                              }
-                                            );
-                                            
-                                            return (
-                                              <div
-                                                key={event.id}
-                                                style={{
-                                                  position: 'absolute',
-                                                  height,
-                                                  top,
-                                                  left,
-                                                  maxWidth,
-                                                  minWidth,
-                                                  padding: '0 2px',
-                                                  boxSizing: 'border-box',
-                                                }}
-                                              >
-                                                <EventStyled
-                                                  event={{
-                                                    ...event,
-                                                    CustomEventComponent,
-                                                    minmized: true,
-                                                  }}
-                                                  CustomEventModal={CustomEventModal}
-                                                />
-                                              </div>
-                                            );
-                                          })}
-                                        </div>
-                                      </div>
-                                    </div>
-                                    
-                                    {/* Event list */}
-                                    <div className="bg-card rounded-lg p-4">
-                                      <h3 className="text-lg font-semibold mb-4">All Events</h3>
-                                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        {dayEvents.map(event => (
-                                          <div 
-                                            key={event.id} 
-                                            className={`p-4 rounded-lg shadow-sm border-l-4 border-${event.variant} hover:shadow-md transition-shadow`}
-                                          >
-                                            <EventStyled
-                                              event={{
-                                                ...event,
-                                                CustomEventComponent,
-                                                minmized: false,
-                                              }}
-                                              CustomEventModal={CustomEventModal}
-                                            />
-                                          </div>
+                      {/* All-day events directly below day header */}
+                      {allDayEvents.length > 0 && (
+                        <div className="w-full px-2 pb-2">
+                          <div className="flex flex-col items-center space-y-1">
+                            <div
+                              className={clsx(
+                                "text-xs px-2 py-1 rounded text-white font-medium truncate w-full text-center",
+                                allDayEvents[0].variant === "primary" && "bg-blue-500",
+                                allDayEvents[0].variant === "success" && "bg-green-500",
+                                allDayEvents[0].variant === "warning" && "bg-yellow-500",
+                                allDayEvents[0].variant === "danger" && "bg-red-500",
+                                !allDayEvents[0].variant && "bg-blue-500"
+                              )}
+                            >
+                              🌅 {allDayEvents[0].title}
+                            </div>
+                            
+                            {/* +X more indicator below the event */}
+                            {hasMoreAllDayEvents && (
+                              <div
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setOpen(
+                                    <CustomModal title={`All-day Events - ${getters.getDayName(day.getDay())} ${day.getDate()}`}>
+                                      <div className="space-y-3 p-4 max-h-[70vh] overflow-y-auto">
+                                        {allDayEvents.map((event) => (
+                                          <EventStyled
+                                            key={event.id}
+                                            event={{
+                                              ...event,
+                                              CustomEventComponent,
+                                              minmized: false,
+                                            }}
+                                            CustomEventModal={CustomEventModal}
+                                          />
                                         ))}
                                       </div>
-                                    </div>
-                                  </div>
-                                ) : (
-                                  <div className="text-center py-10 text-muted-foreground">
-                                    <p>No events scheduled for this day</p>
-                                    <Button 
-                                      variant="outline" 
-                                      className="mt-4"
-                                      onClick={() => {
-                                        setOpen(null);
-                                        handleAddEventWeek(idx, detailedHour || "12:00 PM");
-                                      }}
-                                    >
-                                      Add Event
-                                    </Button>
-                                  </div>
-                                )}
+                                    </CustomModal>
+                                  );
+                                }}
+                                className="text-xs text-blue-600 hover:text-blue-800 cursor-pointer transition duration-300"
+                              >
+                                +{allDayEvents.length - 1} event{allDayEvents.length - 1 !== 1 ? 's' : ''}
                               </div>
-                            </CustomModal>
-                          );
-                        }}
-                      >
-                        <Maximize size={16} className="text-muted-foreground hover:text-primary" />
-                      </div>
-                      
-                      {/* Resize handle */}
+                            )}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
-                  <div className="absolute top-12 right-0 w-px h-[calc(100%-3rem)]"></div>
-                </div>
-              ))}
+                );
+              })}
             </div>
+
 
             {detailedHour && (
               <div
@@ -706,9 +601,9 @@ export default function WeeklyView({
             ref={hoursColumnRef}
             onMouseMove={handleMouseMove}
             onMouseLeave={() => setDetailedHour(null)}
-            className="hidden sm:grid relative grid-cols-1 sm:grid-cols-8 col-span-1 sm:col-span-8"
+            className="hidden sm:grid relative grid-cols-1 sm:grid-cols-8 col-span-1 sm:col-span-8 bg-default-50 rounded-b-lg overflow-hidden"
           >
-            <div className="hidden sm:block col-span-1 bg-default-50 hover:bg-default-100 transition duration-400">
+            <div className="hidden sm:block col-span-1 bg-default-50 hover:bg-default-100 transition duration-400 rounded-bl-lg">
               {hours.map((hour, index) => (
                 <motion.div
                   key={`hour-${index}`}
@@ -721,7 +616,7 @@ export default function WeeklyView({
             </div>
 
             <div 
-              className="col-span-1 sm:col-span-7 bg-default-50 grid h-full" 
+              className="col-span-1 sm:col-span-7 bg-default-50 grid h-full rounded-br-lg" 
               style={{ 
                 gridTemplateColumns: typeof window !== 'undefined' && window.innerWidth <= 640 ? '1fr' : colWidth.map(w => `${w}fr`).join(' '),
                 transition: isResizing ? 'none' : 'grid-template-columns 0.3s ease-in-out'
@@ -730,21 +625,25 @@ export default function WeeklyView({
               {Array.from({ length: 7 }, (_, dayIndex) => {
                 const dayEvents = getters.getEventsForDay(
                   daysOfWeek[dayIndex % 7].getDate(),
-                  currentDate
+                  daysOfWeek[dayIndex % 7]
                 );
 
-                // Calculate time groups once for this day's events
-                const timeGroups = groupEventsByTimePeriod(dayEvents);
+                // Separate all-day and timed events
+                const allDayEvents = dayEvents?.filter(event => event.isAllDay) || [];
+                const timedEvents = dayEvents?.filter(event => !event.isAllDay) || [];
+
+                // Calculate time groups for timed events only
+                const timeGroups = groupEventsByTimePeriod(timedEvents);
                 
-                // Get the count of events to determine if we need to show a "more" button
-                const eventsCount = dayEvents?.length || 0;
-                const maxEventsToShow = 10; // Limit the number of events to display before showing "more"
-                const hasMoreEvents = eventsCount > maxEventsToShow;
+                // Get the count of timed events to determine if we need to show a "more" button
+                const timedEventsCount = timedEvents?.length || 0;
+                const maxTimedEventsToShow = 8; // Limit the number of timed events to display
+                const hasMoreTimedEvents = timedEventsCount > maxTimedEventsToShow;
                 
-                // Only show a subset of events if there are too many
-                const visibleEvents = hasMoreEvents 
-                  ? dayEvents?.slice(0, maxEventsToShow - 1) 
-                  : dayEvents;
+                // Only show a subset of timed events if there are too many
+                const visibleTimedEvents = hasMoreTimedEvents 
+                  ? timedEvents?.slice(0, maxTimedEventsToShow - 1) 
+                  : timedEvents;
 
                 return (
                   <div
@@ -755,32 +654,32 @@ export default function WeeklyView({
                     }}
                   >
                     <AnimatePresence initial={false}>
-                      {visibleEvents?.map((event, eventIndex) => {
+                        {visibleTimedEvents?.map((event, eventIndex) => {
                         // For better spacing, consider if this event is part of a time group
                         let eventsInSamePeriod = 1;
                         let periodIndex = 0;
                         
-                        // Find which time group this event belongs to
-                        for (let i = 0; i < timeGroups.length; i++) {
-                          const groupIndex = timeGroups[i].findIndex(e => e.id === event.id);
-                          if (groupIndex !== -1) {
-                            eventsInSamePeriod = timeGroups[i].length;
-                            periodIndex = groupIndex;
-                            break;
-                          }
-                        }
-                        
-                        // Customize styling parameters for events in the same time period
-                        const { height, left, maxWidth, minWidth, top, zIndex } =
-                          handlers.handleEventStyling(
-                            event, 
-                            dayEvents, 
-                            {
-                              eventsInSamePeriod,
-                              periodIndex,
-                              adjustForPeriod: true
+                          // Find which time group this event belongs to
+                          for (let i = 0; i < timeGroups.length; i++) {
+                            const groupIndex = timeGroups[i].findIndex(e => e.id === event.id);
+                            if (groupIndex !== -1) {
+                              eventsInSamePeriod = timeGroups[i].length;
+                              periodIndex = groupIndex;
+                              break;
                             }
-                          );
+                          }
+                          
+                          // Customize styling parameters for events in the same time period
+                          const { height, left, maxWidth, minWidth, top, zIndex } =
+                            handlers.handleEventStyling(
+                              event, 
+                              timedEvents, // Use timedEvents instead of dayEvents
+                              {
+                                eventsInSamePeriod,
+                                periodIndex,
+                                adjustForPeriod: true
+                              }
+                            );
 
                         return (
                           <motion.div
@@ -812,51 +711,76 @@ export default function WeeklyView({
                           </motion.div>
                         );
                       })}
-                      
-                      {/* Show "more events" button if there are too many */}
-                      {hasMoreEvents && (
-                        <motion.div
-                          key={`more-events-${dayIndex}`}
-                          style={{
-                            bottom: '10px',
-                            right: '10px',
-                            position: 'absolute',
-                          }}
-                          className="z-50"
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          exit={{ opacity: 0 }}
-                        >
-                          <Badge 
-                            variant="secondary"
-                            className="cursor-pointer hover:bg-accent"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              // Show a modal with all events for this day
-                              setOpen(
-                                <CustomModal title={`Events for ${daysOfWeek[dayIndex].toDateString()}`}>
-                                  <div className="space-y-2 p-2 max-h-[80vh] overflow-y-auto">
-                                    {dayEvents?.map((event) => (
-                                      <EventStyled
-                                        key={event.id}
-                                        event={{
-                                          ...event,
-                                          CustomEventComponent,
-                                          minmized: false,
-                                        }}
-                                        CustomEventModal={CustomEventModal}
-                                      />
-                                    ))}
+                    </AnimatePresence>
+                    
+                    {/* Show "more timed events" button if there are too many */}
+                    {hasMoreTimedEvents && (
+                      <motion.div
+                        key={`more-events-${dayIndex}`}
+                        style={{
+                          bottom: '10px',
+                          right: '10px',
+                          position: 'absolute',
+                        }}
+                        className="z-50"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                      >
+                        <Badge 
+                          variant="secondary"
+                          className="cursor-pointer hover:bg-accent"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            // Show a modal with all events for this day
+                            setOpen(
+                              <CustomModal title={`Events for ${daysOfWeek[dayIndex].toDateString()}`}>
+                                <div className="space-y-2 p-2 max-h-[80vh] overflow-y-auto">
+                                  {/* All-day events section */}
+                                  {allDayEvents.length > 0 && (
+                                    <div className="mb-4">
+                                      <h4 className="font-semibold text-sm mb-2 text-blue-600">All-day Events</h4>
+                                      {allDayEvents.map((event) => (
+                                        <EventStyled
+                                          key={event.id}
+                                          event={{
+                                            ...event,
+                                            CustomEventComponent,
+                                            minmized: false,
+                                          }}
+                                          CustomEventModal={CustomEventModal}
+                                        />
+                                      ))}
+                                    </div>
+                                    )}
+                                    
+                                    {/* Timed events section */}
+                                    {timedEvents.length > 0 && (
+                                      <div>
+                                        <h4 className="font-semibold text-sm mb-2">Timed Events</h4>
+                                        {timedEvents.map((event) => (
+                                          <EventStyled
+                                            key={event.id}
+                                            event={{
+                                              ...event,
+                                              CustomEventComponent,
+                                              minmized: false,
+                                            }}
+                                            CustomEventModal={CustomEventModal}
+                                          />
+                                        ))}
+                                      </div>
+                                    )}
                                   </div>
                                 </CustomModal>
                               );
                             }}
                           >
-                            +{eventsCount - (maxEventsToShow - 1)} more
+                            +{timedEventsCount - (maxTimedEventsToShow - 1)} more
                           </Badge>
                         </motion.div>
                       )}
-                    </AnimatePresence>
+                    
                     
                     {/* Render hour slots */}
                     {Array.from({ length: 24 }, (_, hourIndex) => (
@@ -876,8 +800,6 @@ export default function WeeklyView({
           </div>
         </motion.div>
       </AnimatePresence>
-
-   
     </div>
   );
 }

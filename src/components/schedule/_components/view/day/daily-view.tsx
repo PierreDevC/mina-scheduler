@@ -4,6 +4,7 @@ import React, { useRef, useState, useCallback } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 
 import { ArrowLeft, ArrowRight } from "lucide-react";
+import clsx from "clsx";
 
 import { useScheduler } from "@/providers/schedular-provider";
 import { useModal } from "@/providers/modal-context";
@@ -206,8 +207,12 @@ export default function DailyView({
     currentDate
   );
   
-  // Calculate time groups once for all events
-  const timeGroups = groupEventsByTimePeriod(dayEvents);
+  // Separate all-day and timed events
+  const allDayEvents = dayEvents?.filter(event => event.isAllDay) || [];
+  const timedEvents = dayEvents?.filter(event => !event.isAllDay) || [];
+  
+  // Calculate time groups only for timed events
+  const timeGroups = groupEventsByTimePeriod(timedEvents);
 
   function handleAddEvent(event?: Event) {
     // Create the modal content with the provided event data or defaults
@@ -296,9 +301,64 @@ export default function DailyView({
   return (
     <div className="">
       <div className="flex justify-between gap-3 flex-wrap mb-5">
-        <h1 className="text-3xl font-semibold mb-4">
-          {getFormattedDayTitle()}
-        </h1>
+        <div className="flex flex-col">
+          <h1 className="text-3xl font-semibold mb-4">
+            {getFormattedDayTitle()}
+          </h1>
+          
+          {/* All-day events directly below date header */}
+          {allDayEvents.length > 0 && (
+            <div className="mb-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 max-w-2xl">
+                {allDayEvents.slice(0, 3).map((event, index) => (
+                  <div
+                    key={event.id}
+                    className={clsx(
+                      "text-xs px-3 py-2 rounded text-white font-medium truncate",
+                      event.variant === "primary" && "bg-blue-500",
+                      event.variant === "success" && "bg-green-500",
+                      event.variant === "warning" && "bg-yellow-500",
+                      event.variant === "danger" && "bg-red-500",
+                      !event.variant && "bg-blue-500"
+                    )}
+                  >
+                    🌅 {event.title}
+                  </div>
+                ))}
+              </div>
+              
+              {/* +X more indicator for additional all-day events */}
+              {allDayEvents.length > 3 && (
+                <div className="mt-2">
+                  <div
+                    onClick={() => {
+                      setOpen(
+                        <CustomModal title={`All-day Events - ${currentDate.toDateString()}`}>
+                          <div className="space-y-3 p-4 max-h-[70vh] overflow-y-auto">
+                            {allDayEvents.map((event) => (
+                              <EventStyled
+                                key={event.id}
+                                event={{
+                                  ...event,
+                                  CustomEventComponent,
+                                  minmized: false,
+                                }}
+                                CustomEventModal={CustomEventModal}
+                              />
+                            ))}
+                          </div>
+                        </CustomModal>
+                      );
+                    }}
+                    className="text-xs text-blue-600 hover:text-blue-800 cursor-pointer transition duration-300"
+                  >
+                    +{allDayEvents.length - 3} event{allDayEvents.length - 3 !== 1 ? 's' : ''}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
 
         <div className="flex ml-auto  gap-3">
           {prevButton ? (
@@ -341,33 +401,40 @@ export default function DailyView({
           }}
           className="flex flex-col gap-4"
         >
-          {!stopDayEventSummary && (
-            <div className="all-day-events">
+          {!stopDayEventSummary && allDayEvents.length > 0 && (
+            <div className="all-day-events bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 border border-blue-200 dark:border-blue-800">
+              <h3 className="text-sm font-semibold text-blue-700 dark:text-blue-300 mb-3 flex items-center gap-2">
+                🌅 All-day Events
+              </h3>
               <AnimatePresence initial={false}>
-                {dayEvents && dayEvents?.length
-                  ? dayEvents?.map((event, eventIndex) => {
-                      return (
-                        <motion.div
-                          key={event.id}
-                          initial={{ opacity: 0, y: -10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: -10 }}
-                          transition={{ duration: 0.2 }}
-                          className="mb-2"
-                        >
-                          <EventStyled
-                            event={{
-                              ...event,
-                              CustomEventComponent,
-                              minmized: false,
-                            }}
-                            CustomEventModal={CustomEventModal}
-                          />
-                        </motion.div>
-                      );
-                    })
-                  : "No events for today"}
+                {allDayEvents.map((event, eventIndex) => (
+                  <motion.div
+                    key={event.id}
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.2, delay: eventIndex * 0.1 }}
+                    className="mb-2"
+                  >
+                    <EventStyled
+                      event={{
+                        ...event,
+                        CustomEventComponent,
+                        minmized: false,
+                      }}
+                      CustomEventModal={CustomEventModal}
+                    />
+                  </motion.div>
+                ))}
               </AnimatePresence>
+            </div>
+          )}
+
+          {!stopDayEventSummary && timedEvents.length > 0 && (
+            <div className="timed-events">
+              <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
+                🕐 Scheduled Events
+              </h3>
             </div>
           )}
 
@@ -407,8 +474,8 @@ export default function DailyView({
                   </div>
                 ))}
                 <AnimatePresence initial={false}>
-                  {dayEvents && dayEvents?.length
-                    ? dayEvents?.map((event, eventIndex) => {
+                  {timedEvents && timedEvents?.length
+                    ? timedEvents?.map((event, eventIndex) => {
                         // Find which time group this event belongs to
                         let eventsInSamePeriod = 1;
                         let periodIndex = 0;
@@ -431,7 +498,7 @@ export default function DailyView({
                           zIndex,
                         } = handlers.handleEventStyling(
                           event, 
-                          dayEvents,
+                          timedEvents, // Use timedEvents instead of dayEvents
                           {
                             eventsInSamePeriod,
                             periodIndex,
@@ -467,7 +534,7 @@ export default function DailyView({
                           </motion.div>
                         );
                       })
-                    : ""}
+                    : null}
                 </AnimatePresence>
               </div>
             </motion.div>

@@ -47,6 +47,7 @@ export interface Event {
   endDate: Date;
   variant?: Variant;
   invitedPeople?: Person[];
+  isAllDay?: boolean;
 }
 
 // Define the state interface for the scheduler
@@ -138,6 +139,7 @@ export const eventSchema = z.object({
   variant: z.enum(["primary", "danger", "success", "warning", "default"]),
   color: z.string().nonempty("Color selection is required"),
   invitedPeople: z.array(personSchema).optional(),
+  isAllDay: z.boolean().optional(),
 });
 
 export type EventFormData = z.infer<typeof eventSchema>;
