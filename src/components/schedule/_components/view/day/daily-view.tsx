@@ -314,13 +314,28 @@ export default function DailyView({
                   <div
                     key={event.id}
                     className={clsx(
-                      "text-xs px-3 py-2 rounded text-white font-medium truncate",
+                      "text-xs px-3 py-2 rounded text-white font-medium truncate cursor-pointer filter hover:brightness-[0.9] transition",
                       event.variant === "primary" && "bg-blue-500",
                       event.variant === "success" && "bg-green-500",
                       event.variant === "warning" && "bg-yellow-500",
                       event.variant === "danger" && "bg-red-500",
                       !event.variant && "bg-blue-500"
                     )}
+                    onClick={() => {
+                      setOpen(
+                        <CustomModal title="Edit Event">
+                          <AddEventModal
+                            CustomAddEventModal={
+                              CustomEventModal?.CustomAddEventModal?.CustomForm
+                            }
+                          />
+                        </CustomModal>,
+                        async () => ({
+                          ...event,
+                          invitedPeople: event.invitedPeople || [],
+                        })
+                      );
+                    }}
                   >
                     🌅 {event.title}
                   </div>

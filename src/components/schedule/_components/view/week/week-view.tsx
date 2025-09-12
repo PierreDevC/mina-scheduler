@@ -533,13 +533,30 @@ export default function WeeklyView({
                           <div className="flex flex-col items-center space-y-1">
                             <div
                               className={clsx(
-                                "text-xs px-2 py-1 rounded text-white font-medium truncate w-full text-center",
+                                "text-xs px-2 py-1 rounded text-white font-medium truncate w-full text-center cursor-pointer filter hover:brightness-[0.9] transition",
                                 allDayEvents[0].variant === "primary" && "bg-blue-500",
                                 allDayEvents[0].variant === "success" && "bg-green-500",
                                 allDayEvents[0].variant === "warning" && "bg-yellow-500",
                                 allDayEvents[0].variant === "danger" && "bg-red-500",
                                 !allDayEvents[0].variant && "bg-blue-500"
                               )}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                const event = allDayEvents[0];
+                                setOpen(
+                                  <CustomModal title="Edit Event">
+                                    <AddEventModal
+                                      CustomAddEventModal={
+                                        CustomEventModal?.CustomAddEventModal?.CustomForm
+                                      }
+                                    />
+                                  </CustomModal>,
+                                  async () => ({
+                                    ...event,
+                                    invitedPeople: event.invitedPeople || [],
+                                  })
+                                );
+                              }}
                             >
                               🌅 {allDayEvents[0].title}
                             </div>

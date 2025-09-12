@@ -71,10 +71,10 @@ const mockUser = {
   name: "Sophie Martin",
   email: "sophie.martin@example.com",
   avatar: "/api/placeholder/100/100",
-  role: "Chef de projet",
+  role: "Project Manager",
   department: "Marketing",
   timezone: "Europe/Paris",
-  language: "Français",
+  language: "English",
 };
 
 // Sync integrations data with official logos (using placeholder URLs for demo)
@@ -82,38 +82,38 @@ const syncIntegrations = [
   {
     id: "teams",
     name: "Microsoft Teams",
-    description: "Synchronisez vos réunions Teams avec votre calendrier",
+    description: "Sync your Teams meetings with your calendar",
     logo: "https://img.icons8.com/color/96/microsoft-teams.png",
     connected: true,
-    lastSync: "Il y a 2 minutes",
-    features: ["Réunions", "Statut", "Calendrier"],
+    lastSync: "2 minutes ago",
+    features: ["Meetings", "Status", "Calendar"],
   },
   {
     id: "google",
     name: "Google Calendar",
-    description: "Synchronisation bidirectionnelle avec Google Calendar",
+    description: "Bidirectional sync with Google Calendar",
     logo: "https://img.icons8.com/color/96/google-calendar.png",
     connected: true,
-    lastSync: "Il y a 5 minutes",
-    features: ["Événements", "Rappels", "Invitations"],
+    lastSync: "5 minutes ago",
+    features: ["Events", "Reminders", "Invitations"],
   },
   {
     id: "notion",
     name: "Notion Calendar",
-    description: "Intégrez vos tâches et événements Notion",
+    description: "Integrate your Notion tasks and events",
     logo: "https://img.icons8.com/color/96/notion.png",
     connected: false,
-    lastSync: "Jamais",
-    features: ["Tâches", "Bases de données", "Templates"],
+    lastSync: "Never",
+    features: ["Tasks", "Databases", "Templates"],
   },
   {
     id: "slack",
     name: "Slack",
-    description: "Recevez des notifications et gérez vos statuts",
+    description: "Receive notifications and manage your status",
     logo: "https://img.icons8.com/color/96/slack-new.png",
     connected: true,
-    lastSync: "Il y a 1 minute",
-    features: ["Notifications", "Statut", "Canaux"],
+    lastSync: "1 minute ago",
+    features: ["Notifications", "Status", "Channels"],
   },
 ];
 
@@ -123,9 +123,9 @@ export default function SettingsView() {
     // Profile settings
     name: mockUser.name,
     email: mockUser.email,
-    bio: "Passionnée par la gestion de projet et l'innovation digitale.",
+    bio: "Passionate about project management and digital innovation.",
     timezone: mockUser.timezone,
-    language: mockUser.language,
+    language: "English",
     
     // Notifications
     emailNotifications: true,
@@ -162,13 +162,13 @@ export default function SettingsView() {
   });
 
   const settingSections = [
-    { id: "profile", label: "Profil", icon: User },
+    { id: "profile", label: "Profile", icon: User },
     { id: "notifications", label: "Notifications", icon: Bell },
-    { id: "calendar", label: "Calendrier", icon: Calendar },
-    { id: "integrations", label: "Intégrations", icon: Zap },
-    { id: "privacy", label: "Confidentialité", icon: Shield },
-    { id: "appearance", label: "Apparence", icon: Palette },
-    { id: "data", label: "Données", icon: Database },
+    { id: "calendar", label: "Calendar", icon: Calendar },
+    { id: "integrations", label: "Integrations", icon: Zap },
+    { id: "privacy", label: "Privacy", icon: Shield },
+    { id: "appearance", label: "Appearance", icon: Palette },
+    { id: "data", label: "Data", icon: Database },
   ];
 
   const updateSetting = (key: string, value: any) => {
@@ -179,9 +179,9 @@ export default function SettingsView() {
     <div className="space-y-6">
       <div>
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-          Informations personnelles
+          Personal Information
         </h3>
-        <div className="space-y-4">
+        <div className="space-y-3">
           <div className="flex items-center space-x-4">
             <Avatar className="h-20 w-20">
               <AvatarImage src={mockUser.avatar} alt={mockUser.name} />
@@ -190,18 +190,19 @@ export default function SettingsView() {
             <div>
               <Button variant="outline" size="sm">
                 <Upload className="h-4 w-4 mr-2" />
-                Changer la photo
+                Change photo
               </Button>
               <p className="text-sm text-gray-500 mt-1">
-                JPG, PNG ou GIF. Taille maximale : 2MB
+                JPG, PNG or GIF. Maximum size: 2MB
               </p>
             </div>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="name">Nom complet</Label>
+              <Label htmlFor="name">Full name</Label>
               <Input
+                className="mt-2"
                 id="name"
                 value={settings.name}
                 onChange={(e) => updateSetting("name", e.target.value)}
@@ -210,6 +211,7 @@ export default function SettingsView() {
             <div>
               <Label htmlFor="email">Email</Label>
               <Input
+                className="mt-2"
                 id="email"
                 type="email"
                 value={settings.email}
@@ -219,21 +221,22 @@ export default function SettingsView() {
           </div>
           
           <div>
-            <Label htmlFor="bio">Biographie</Label>
+            <Label htmlFor="bio">Biography</Label>
             <Textarea
+              className="mt-2"
               id="bio"
               value={settings.bio}
               onChange={(e) => updateSetting("bio", e.target.value)}
-              placeholder="Parlez-nous de vous..."
+              placeholder="Tell us about yourself..."
               rows={3}
             />
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="timezone">Fuseau horaire</Label>
+              <Label htmlFor="timezone">Timezone</Label>
               <Select value={settings.timezone} onValueChange={(value) => updateSetting("timezone", value)}>
-                <SelectTrigger>
+                <SelectTrigger className="mt-2">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -245,16 +248,16 @@ export default function SettingsView() {
               </Select>
             </div>
             <div>
-              <Label htmlFor="language">Langue</Label>
+              <Label htmlFor="language">Language</Label>
               <Select value={settings.language} onValueChange={(value) => updateSetting("language", value)}>
-                <SelectTrigger>
+                <SelectTrigger className="mt-2">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Français">Français</SelectItem>
+                  <SelectItem value="Français">French</SelectItem>
                   <SelectItem value="English">English</SelectItem>
-                  <SelectItem value="Español">Español</SelectItem>
-                  <SelectItem value="Deutsch">Deutsch</SelectItem>
+                  <SelectItem value="Español">Spanish</SelectItem>
+                  <SelectItem value="Deutsch">German</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -268,13 +271,13 @@ export default function SettingsView() {
     <div className="space-y-6">
       <div>
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-          Préférences de notification
+          Notification Preferences
         </h3>
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label>Notifications par email</Label>
-              <p className="text-sm text-gray-500">Recevez des emails pour les événements importants</p>
+              <Label>Email notifications</Label>
+              <p className="text-sm text-gray-500">Receive emails for important events</p>
             </div>
             <Switch
               checked={settings.emailNotifications}
@@ -284,8 +287,8 @@ export default function SettingsView() {
           
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label>Notifications push</Label>
-              <p className="text-sm text-gray-500">Notifications sur votre appareil mobile</p>
+              <Label>Push notifications</Label>
+              <p className="text-sm text-gray-500">Notifications on your mobile device</p>
             </div>
             <Switch
               checked={settings.pushNotifications}
@@ -295,8 +298,8 @@ export default function SettingsView() {
           
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label>Notifications desktop</Label>
-              <p className="text-sm text-gray-500">Notifications sur votre navigateur</p>
+              <Label>Desktop notifications</Label>
+              <p className="text-sm text-gray-500">Notifications in your browser</p>
             </div>
             <Switch
               checked={settings.desktopNotifications}
@@ -308,8 +311,8 @@ export default function SettingsView() {
           
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label>Rappels d'événements</Label>
-              <p className="text-sm text-gray-500">Rappels 15 minutes avant vos événements</p>
+              <Label>Event reminders</Label>
+              <p className="text-sm text-gray-500">Reminders 15 minutes before your events</p>
             </div>
             <Switch
               checked={settings.eventReminders}
@@ -319,8 +322,8 @@ export default function SettingsView() {
           
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label>Mises à jour d'équipe</Label>
-              <p className="text-sm text-gray-500">Changements dans vos équipes et projets</p>
+              <Label>Team updates</Label>
+              <p className="text-sm text-gray-500">Changes in your teams and projects</p>
             </div>
             <Switch
               checked={settings.teamUpdates}
@@ -330,8 +333,8 @@ export default function SettingsView() {
           
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label>Digest hebdomadaire</Label>
-              <p className="text-sm text-gray-500">Résumé de votre semaine chaque lundi</p>
+              <Label>Weekly digest</Label>
+              <p className="text-sm text-gray-500">Summary of your week every Monday</p>
             </div>
             <Switch
               checked={settings.weeklyDigest}
@@ -347,43 +350,44 @@ export default function SettingsView() {
     <div className="space-y-6">
       <div>
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-          Préférences du calendrier
+          Calendar Preferences
         </h3>
         <div className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="weekStart">La semaine commence le</Label>
+              <Label htmlFor="weekStart">Week starts on</Label>
               <Select value={settings.weekStartsOn} onValueChange={(value) => updateSetting("weekStartsOn", value)}>
-                <SelectTrigger>
+                <SelectTrigger className="mt-2">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="monday">Lundi</SelectItem>
-                  <SelectItem value="sunday">Dimanche</SelectItem>
+                  <SelectItem value="monday">Monday</SelectItem>
+                  <SelectItem value="sunday">Sunday</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div>
-              <Label htmlFor="defaultView">Vue par défaut</Label>
+              <Label htmlFor="defaultView">Default view</Label>
               <Select value={settings.defaultView} onValueChange={(value) => updateSetting("defaultView", value)}>
-                <SelectTrigger>
+                <SelectTrigger className="mt-2">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="day">Jour</SelectItem>
-                  <SelectItem value="week">Semaine</SelectItem>
-                  <SelectItem value="month">Mois</SelectItem>
+                  <SelectItem value="day">Day</SelectItem>
+                  <SelectItem value="week">Week</SelectItem>
+                  <SelectItem value="month">Month</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
           
           <div>
-            <Label className="text-base">Heures de travail</Label>
+            <Label className="text-base">Working hours</Label>
             <div className="grid grid-cols-2 gap-4 mt-2">
               <div>
-                <Label htmlFor="workStart" className="text-sm">Début</Label>
+                <Label htmlFor="workStart" className="text-sm">Start</Label>
                 <Input
+                  className="mt-2"
                   id="workStart"
                   type="time"
                   value={settings.workingHours.start}
@@ -391,8 +395,9 @@ export default function SettingsView() {
                 />
               </div>
               <div>
-                <Label htmlFor="workEnd" className="text-sm">Fin</Label>
+                <Label htmlFor="workEnd" className="text-sm">End</Label>
                 <Input
+                  className="mt-2"
                   id="workEnd"
                   type="time"
                   value={settings.workingHours.end}
@@ -404,8 +409,8 @@ export default function SettingsView() {
           
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label>Afficher les week-ends</Label>
-              <p className="text-sm text-gray-500">Samedi et dimanche dans la vue calendrier</p>
+              <Label>Show weekends</Label>
+              <p className="text-sm text-gray-500">Saturday and Sunday in calendar view</p>
             </div>
             <Switch
               checked={settings.showWeekends}
@@ -414,22 +419,22 @@ export default function SettingsView() {
           </div>
           
           <div>
-            <Label htmlFor="timeFormat">Format d'heure</Label>
+            <Label htmlFor="timeFormat">Time format</Label>
             <Select value={settings.timeFormat} onValueChange={(value) => updateSetting("timeFormat", value)}>
-              <SelectTrigger>
+              <SelectTrigger className="mt-2">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="12h">12 heures (AM/PM)</SelectItem>
-                <SelectItem value="24h">24 heures</SelectItem>
+                <SelectItem value="12h">12 hours (AM/PM)</SelectItem>
+                <SelectItem value="24h">24 hours</SelectItem>
               </SelectContent>
             </Select>
           </div>
           
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label>Accepter automatiquement les réunions</Label>
-              <p className="text-sm text-gray-500">Accepter les invitations de votre équipe</p>
+              <Label>Auto-accept meetings</Label>
+              <p className="text-sm text-gray-500">Accept invitations from your team</p>
             </div>
             <Switch
               checked={settings.autoAcceptMeetings}
@@ -445,10 +450,10 @@ export default function SettingsView() {
     <div className="space-y-6">
       <div>
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-          Synchronisation avec d'autres applications
+          Sync with other applications
         </h3>
         <p className="text-gray-600 dark:text-gray-400 mb-6">
-          Connectez vos outils favoris pour une expérience unifiée
+          Connect your favorite tools for a unified experience
         </p>
         
         <div className="space-y-4">
@@ -469,12 +474,12 @@ export default function SettingsView() {
                       {integration.connected ? (
                         <Badge variant="secondary" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
                           <Check className="h-3 w-3 mr-1" />
-                          Connecté
+                          Connected
                         </Badge>
                       ) : (
                         <Badge variant="outline">
                           <X className="h-3 w-3 mr-1" />
-                          Déconnecté
+                          Disconnected
                         </Badge>
                       )}
                     </div>
@@ -482,9 +487,9 @@ export default function SettingsView() {
                       {integration.description}
                     </p>
                     <div className="flex items-center space-x-4 text-xs text-gray-500">
-                      <span>Dernière sync: {integration.lastSync}</span>
+                      <span>Last sync: {integration.lastSync}</span>
                       <div className="flex items-center space-x-1">
-                        <span>Fonctionnalités:</span>
+                        <span>Features:</span>
                         {integration.features.map((feature, index) => (
                           <Badge key={index} variant="outline" className="text-xs">
                             {feature}
@@ -498,14 +503,14 @@ export default function SettingsView() {
                   {integration.connected && (
                     <Button variant="outline" size="sm">
                       <RefreshCw className="h-4 w-4 mr-2" />
-                      Synchroniser
+                      Sync
                     </Button>
                   )}
                   <Button 
                     variant={integration.connected ? "outline" : "default"} 
                     size="sm"
                   >
-                    {integration.connected ? "Déconnecter" : "Connecter"}
+                    {integration.connected ? "Disconnect" : "Connect"}
                   </Button>
                 </div>
               </div>
@@ -520,41 +525,41 @@ export default function SettingsView() {
     <div className="space-y-6">
       <div>
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-          Confidentialité et sécurité
+          Privacy and Security
         </h3>
         <div className="space-y-4">
           <div>
-            <Label htmlFor="profileVisibility">Visibilité du profil</Label>
+            <Label htmlFor="profileVisibility">Profile visibility</Label>
             <Select value={settings.profileVisibility} onValueChange={(value) => updateSetting("profileVisibility", value)}>
-              <SelectTrigger>
+              <SelectTrigger className="mt-2">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="public">Public</SelectItem>
-                <SelectItem value="team">Équipe uniquement</SelectItem>
-                <SelectItem value="private">Privé</SelectItem>
+                <SelectItem value="team">Team only</SelectItem>
+                <SelectItem value="private">Private</SelectItem>
               </SelectContent>
             </Select>
           </div>
           
           <div>
-            <Label htmlFor="calendarsVisibility">Visibilité des calendriers</Label>
+            <Label htmlFor="calendarsVisibility">Calendar visibility</Label>
             <Select value={settings.calendarsVisibility} onValueChange={(value) => updateSetting("calendarsVisibility", value)}>
-              <SelectTrigger>
+              <SelectTrigger className="mt-2">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="public">Public</SelectItem>
-                <SelectItem value="team">Équipe uniquement</SelectItem>
-                <SelectItem value="private">Privé</SelectItem>
+                <SelectItem value="team">Team only</SelectItem>
+                <SelectItem value="private">Private</SelectItem>
               </SelectContent>
             </Select>
           </div>
           
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label>Authentification à deux facteurs</Label>
-              <p className="text-sm text-gray-500">Sécurisez votre compte avec 2FA</p>
+              <Label>Two-factor authentication</Label>
+              <p className="text-sm text-gray-500">Secure your account with 2FA</p>
             </div>
             <Switch
               checked={settings.twoFactorAuth}
@@ -563,17 +568,17 @@ export default function SettingsView() {
           </div>
           
           <div>
-            <Label htmlFor="sessionTimeout">Expiration de session (minutes)</Label>
+            <Label htmlFor="sessionTimeout">Session timeout (minutes)</Label>
             <Select value={settings.sessionTimeout} onValueChange={(value) => updateSetting("sessionTimeout", value)}>
-              <SelectTrigger>
+              <SelectTrigger className="mt-2">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="15">15 minutes</SelectItem>
                 <SelectItem value="30">30 minutes</SelectItem>
-                <SelectItem value="60">1 heure</SelectItem>
-                <SelectItem value="240">4 heures</SelectItem>
-                <SelectItem value="never">Jamais</SelectItem>
+                <SelectItem value="60">1 hour</SelectItem>
+                <SelectItem value="240">4 hours</SelectItem>
+                <SelectItem value="never">Never</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -586,32 +591,32 @@ export default function SettingsView() {
     <div className="space-y-6">
       <div>
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-          Apparence et thème
+          Appearance and Theme
         </h3>
         <div className="space-y-4">
           <div>
-            <Label htmlFor="theme">Thème</Label>
+            <Label htmlFor="theme">Theme</Label>
             <Select value={settings.theme} onValueChange={(value) => updateSetting("theme", value)}>
-              <SelectTrigger>
+              <SelectTrigger className="mt-2">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="light">
                   <div className="flex items-center">
                     <Sun className="h-4 w-4 mr-2" />
-                    Clair
+                    Light
                   </div>
                 </SelectItem>
                 <SelectItem value="dark">
                   <div className="flex items-center">
                     <Moon className="h-4 w-4 mr-2" />
-                    Sombre
+                    Dark
                   </div>
                 </SelectItem>
                 <SelectItem value="system">
                   <div className="flex items-center">
                     <Laptop className="h-4 w-4 mr-2" />
-                    Système
+                    System
                   </div>
                 </SelectItem>
               </SelectContent>
@@ -619,7 +624,7 @@ export default function SettingsView() {
           </div>
           
           <div>
-            <Label htmlFor="accentColor">Couleur d'accent</Label>
+            <Label htmlFor="accentColor">Accent color</Label>
             <div className="flex items-center space-x-2 mt-2">
               {["blue", "green", "purple", "red", "orange", "pink"].map((color) => (
                 <button
@@ -636,8 +641,8 @@ export default function SettingsView() {
           
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label>Mode compact</Label>
-              <p className="text-sm text-gray-500">Interface plus dense avec moins d'espacement</p>
+              <Label>Compact mode</Label>
+              <p className="text-sm text-gray-500">Denser interface with less spacing</p>
             </div>
             <Switch
               checked={settings.compactMode}
@@ -648,7 +653,7 @@ export default function SettingsView() {
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
               <Label>Animations</Label>
-              <p className="text-sm text-gray-500">Transitions et animations dans l'interface</p>
+              <p className="text-sm text-gray-500">Transitions and animations in the interface</p>
             </div>
             <Switch
               checked={settings.animations}
@@ -664,7 +669,7 @@ export default function SettingsView() {
     <div className="space-y-6">
       <div>
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-          Gestion des données
+          Data Management
         </h3>
         <div className="space-y-4">
           <Card className="p-4 border-blue-200 bg-blue-50 dark:bg-blue-900/20 dark:border-blue-800">
@@ -672,14 +677,14 @@ export default function SettingsView() {
               <Download className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5" />
               <div className="flex-1">
                 <h4 className="font-semibold text-blue-900 dark:text-blue-100">
-                  Exporter mes données
+                  Export my data
                 </h4>
                 <p className="text-sm text-blue-700 dark:text-blue-200 mt-1">
-                  Téléchargez toutes vos données personnelles au format JSON
+                  Download all your personal data in JSON format
                 </p>
                 <Button variant="outline" size="sm" className="mt-3">
                   <Download className="h-4 w-4 mr-2" />
-                  Créer l'export
+                  Create export
                 </Button>
               </div>
             </div>
@@ -690,14 +695,14 @@ export default function SettingsView() {
               <Trash2 className="h-5 w-5 text-red-600 dark:text-red-400 mt-0.5" />
               <div className="flex-1">
                 <h4 className="font-semibold text-red-900 dark:text-red-100">
-                  Supprimer mon compte
+                  Delete my account
                 </h4>
                 <p className="text-sm text-red-700 dark:text-red-200 mt-1">
-                  Cette action est irréversible. Toutes vos données seront supprimées.
+                  This action is irreversible. All your data will be deleted.
                 </p>
                 <Button variant="destructive" size="sm" className="mt-3">
                   <Trash2 className="h-4 w-4 mr-2" />
-                  Supprimer le compte
+                  Delete account
                 </Button>
               </div>
             </div>
@@ -707,8 +712,8 @@ export default function SettingsView() {
           
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label>Données d'utilisation anonymes</Label>
-              <p className="text-sm text-gray-500">Aidez-nous à améliorer l'application</p>
+              <Label>Anonymous usage data</Label>
+              <p className="text-sm text-gray-500">Help us improve the application</p>
             </div>
             <Switch
               checked={settings.analytics}
@@ -718,8 +723,8 @@ export default function SettingsView() {
           
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label>Rapports de crash</Label>
-              <p className="text-sm text-gray-500">Envoi automatique des erreurs pour résolution</p>
+              <Label>Crash reports</Label>
+              <p className="text-sm text-gray-500">Automatic error reports for resolution</p>
             </div>
             <Switch
               checked={settings.crashReports}
@@ -741,10 +746,10 @@ export default function SettingsView() {
     >
       <motion.div variants={itemVariants} className="mb-8">
         <h1 className="text-4xl font-bold text-gray-900 dark:text-white">
-          Paramètres
+          Settings
         </h1>
         <p className="text-gray-600 dark:text-gray-400 mt-2 text-lg">
-          Personnalisez votre expérience et gérez vos préférences
+          Customize your experience and manage your preferences
         </p>
       </motion.div>
 
@@ -789,10 +794,10 @@ export default function SettingsView() {
             
             <div className="flex justify-end space-x-4">
               <Button variant="outline">
-                Annuler
+                Cancel
               </Button>
               <Button>
-                Sauvegarder les modifications
+                Save changes
               </Button>
             </div>
           </Card>
