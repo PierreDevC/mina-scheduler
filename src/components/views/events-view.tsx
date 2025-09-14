@@ -10,6 +10,7 @@ import { Calendar, Clock, MapPin, Users, Plus, Filter, Search, XCircle, CheckCir
 import { useModal } from "@/providers/modal-context";
 import AddEventModal from "@/components/schedule/_modals/add-event-modal";
 import CustomModal from "@/components/ui/custom-modal";
+import { useRouter } from "next/navigation";
 
 const events = [
   {
@@ -233,6 +234,7 @@ export default function EventsView() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState<FilterType>("all");
   const { setOpen } = useModal();
+  const router = useRouter();
 
   // Helper function to check if event is upcoming
   const isEventUpcoming = (event: any) => {
@@ -314,6 +316,10 @@ export default function EventsView() {
         <AddEventModal />
       </CustomModal>
     );
+  };
+
+  const handleViewCalendar = () => {
+    router.push("/dashboard?view=calendar");
   };
 
   return (
@@ -406,18 +412,14 @@ export default function EventsView() {
           <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">
             Quick Actions
           </h3>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <Button className="w-full justify-start" size="lg" onClick={handleCreateEvent}>
               <Plus className="mr-3 h-4 w-4" />
               Create Event
             </Button>
-            <Button className="w-full justify-start" variant="outline" size="lg">
+            <Button className="w-full justify-start" variant="outline" size="lg" onClick={handleViewCalendar}>
               <Calendar className="mr-3 h-4 w-4" />
               View Calendar
-            </Button>
-            <Button className="w-full justify-start" variant="outline" size="lg">
-              <Users className="mr-3 h-4 w-4" />
-              Invite Attendees
             </Button>
           </div>
         </div>
@@ -551,13 +553,9 @@ export default function EventsView() {
                 <Plus className="mr-3 h-4 w-4" />
                 Create Event
               </Button>
-              <Button className="w-full justify-start" variant="outline" size="lg">
+              <Button className="w-full justify-start" variant="outline" size="lg" onClick={handleViewCalendar}>
                 <Calendar className="mr-3 h-4 w-4" />
                 View Calendar
-              </Button>
-              <Button className="w-full justify-start" variant="outline" size="lg">
-                <Users className="mr-3 h-4 w-4" />
-                Invite Attendees
               </Button>
             </div>
           </div>

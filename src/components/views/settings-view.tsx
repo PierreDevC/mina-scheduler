@@ -138,7 +138,6 @@ export default function SettingsView() {
     // Calendar preferences
     weekStartsOn: "monday",
     defaultView: "week",
-    workingHours: { start: "09:00", end: "18:00" },
     showWeekends: true,
     timeFormat: "24h",
     autoAcceptMeetings: false,
@@ -378,32 +377,6 @@ export default function SettingsView() {
                   <SelectItem value="month">Month</SelectItem>
                 </SelectContent>
               </Select>
-            </div>
-          </div>
-          
-          <div>
-            <Label className="text-base">Working hours</Label>
-            <div className="grid grid-cols-2 gap-4 mt-2">
-              <div>
-                <Label htmlFor="workStart" className="text-sm">Start</Label>
-                <Input
-                  className="mt-2"
-                  id="workStart"
-                  type="time"
-                  value={settings.workingHours.start}
-                  onChange={(e) => updateSetting("workingHours", {...settings.workingHours, start: e.target.value})}
-                />
-              </div>
-              <div>
-                <Label htmlFor="workEnd" className="text-sm">End</Label>
-                <Input
-                  className="mt-2"
-                  id="workEnd"
-                  type="time"
-                  value={settings.workingHours.end}
-                  onChange={(e) => updateSetting("workingHours", {...settings.workingHours, end: e.target.value})}
-                />
-              </div>
             </div>
           </div>
           
