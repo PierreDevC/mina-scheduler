@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { SchedulerProvider } from "@/providers/schedular-provider";
 import SchedulerWrapper from "@/components/schedule/_components/view/schedular-view-filteration";
+import { useEvents } from "@/providers/events-context";
 
 const containerVariants = {
   hidden: { opacity: 0, y: 20 },
@@ -21,6 +22,8 @@ const containerVariants = {
 };
 
 export default function CalendarView() {
+  const { events, addEvent, updateEvent, deleteEvent } = useEvents();
+
   return (
     <motion.div
       variants={containerVariants}
@@ -50,7 +53,13 @@ export default function CalendarView() {
         className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden"
       >
         <div className="p-6">
-          <SchedulerProvider weekStartsOn="monday">
+          <SchedulerProvider
+            weekStartsOn="monday"
+            initialState={events}
+            onAddEvent={addEvent}
+            onUpdateEvent={updateEvent}
+            onDeleteEvent={deleteEvent}
+          >
             <SchedulerWrapper
               stopDayEventSummary={true}
               views={{

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useContext, useMemo } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -11,118 +11,51 @@ import { useModal } from "@/providers/modal-context";
 import AddEventModal from "@/components/schedule/_modals/add-event-modal";
 import CustomModal from "@/components/ui/custom-modal";
 import { useRouter } from "next/navigation";
+import { useEvents } from "@/providers/events-context";
 
-const events = [
-  {
-    id: 1,
-    title: "Gym Session with friends",
-    description: "Weekly workout session with the team",
-    date: "2024-01-15",
-    time: "18:00",
-    duration: "1h30",
-    location: "Local Gym",
-    attendees: 4,
-    type: "workout",
-    priority: "low",
-    organizer: "Pierre-Sylvestre Cypré",
-    status: "confirmed",
-    isRecurring: true,
-    recurringType: "weekly",
-  },
-  {
-    id: 2,
-    title: "Flutter presentation",
-    description: "Presentation on Flutter development best practices",
-    date: "2024-01-16",
-    time: "14:00",
-    duration: "1h",
-    location: "Conference Room B",
-    attendees: 6,
-    type: "presentation",
-    priority: "medium",
-    organizer: "Xavier Giguère",
-    status: "unconfirmed",
-    isRecurring: false,
-  },
-  {
-    id: 3,
-    title: "Meeting with devs",
-    description: "Development team sync and planning session",
-    date: "2024-01-17",
-    time: "10:00",
-    duration: "2h",
-    location: "Coffee Only Office",
-    attendees: 4,
-    type: "meeting",
-    priority: "high",
-    organizer: "William Descoteaux",
-    status: "confirmed",
-    isRecurring: false,
-  },
-  {
-    id: 4,
-    title: "Project Review",
-    description: "Monthly project review meeting",
-    date: "2023-12-15",
-    time: "15:00",
-    duration: "1h30",
-    location: "Conference Room A",
-    attendees: 8,
-    type: "meeting",
-    priority: "medium",
-    organizer: "Alexandre Emond",
-    status: "past",
-    isRecurring: true,
-    recurringType: "monthly",
-  },
-  {
-    id: 5,
-    title: "Team Building Event",
-    description: "Quarterly team building activity",
-    date: "2024-02-20",
-    time: "09:00",
-    duration: "4h",
-    location: "Outdoor Park",
-    attendees: 12,
-    type: "workshop",
-    priority: "low",
-    organizer: "Sophie Lefebvre",
-    status: "confirmed",
-    isRecurring: true,
-    recurringType: "quarterly",
-  },
-  {
-    id: 6,
-    title: "Client Meeting",
-    description: "Important client presentation",
-    date: "2024-01-10",
-    time: "11:00",
-    duration: "2h",
-    location: "Client Office",
-    attendees: 5,
-    type: "presentation",
-    priority: "high",
-    organizer: "Lara Moreau",
-    status: "canceled",
-    isRecurring: false,
-  },
-  {
-    id: 7,
-    title: "Code Review Session",
-    description: "Weekly code review with the team",
-    date: "2024-01-18",
-    time: "16:00",
-    duration: "1h",
-    location: "Development Room",
-    attendees: 6,
-    type: "review",
-    priority: "medium",
-    organizer: "Thomas Richard",
-    status: "unconfirmed",
-    isRecurring: true,
-    recurringType: "weekly",
-  },
-];
+// Helper function to convert Event to events view format
+const convertEventToEventsView = (event: any) => ({
+  id: parseInt(event.id),
+  title: event.title,
+  description: event.description || "",
+  date: event.startDate.toISOString().split('T')[0],
+  time: event.startDate.toTimeString().slice(0, 5),
+  duration: `${Math.round((event.endDate.getTime() - event.startDate.getTime()) / (1000 * 60))}min`,
+  location: "Office", // Default location
+  attendees: event.invitedPeople?.length || 1,
+  type: getEventTypeFromVariant(event.variant),
+  priority: getPriorityFromVariant(event.variant),
+  organizer: event.invitedPeople?.[0]?.name || "Unknown",
+  status: getStatusFromDate(event.startDate),
+  isRecurring: false,
+  recurringType: "none", // Default for non-recurring events
+});
+
+function getEventTypeFromVariant(variant?: string): string {
+  switch (variant) {
+    case "danger": return "workout";
+    case "primary": return "presentation";
+    case "warning": return "meeting";
+    case "success": return "workshop";
+    default: return "review";
+  }
+}
+
+function getPriorityFromVariant(variant?: string): string {
+  switch (variant) {
+    case "danger": return "low";
+    case "primary": return "medium";
+    case "warning": return "high";
+    case "success": return "medium";
+    default: return "low";
+  }
+}
+
+function getStatusFromDate(date: Date): string {
+  const now = new Date();
+  if (date < now) return "past";
+  return "confirmed";
+}
 
 const upcomingEvents = [
   { title: "Daily Standup", time: "09:00", type: "meeting" },
@@ -235,6 +168,12 @@ export default function EventsView() {
   const [activeFilter, setActiveFilter] = useState<FilterType>("all");
   const { setOpen } = useModal();
   const router = useRouter();
+  const { events: contextEvents } = useEvents();
+
+  // Convert context events to events view format
+  const events = useMemo(() => {
+    return contextEvents.map(convertEventToEventsView);
+  }, [contextEvents]);
 
   // Helper function to check if event is upcoming
   const isEventUpcoming = (event: any) => {

@@ -9,6 +9,7 @@ import GroupsView from "@/components/views/groups-view";
 import EventsView from "@/components/views/events-view";
 import FriendsView from "@/components/views/friends-view";
 import SettingsView from "@/components/views/settings-view";
+import { EventsProvider } from "@/providers/events-context";
 
 const pageVariants = {
   initial: { 
@@ -70,41 +71,43 @@ export default function AppPage() {
   };
 
   return (
-    <motion.div 
-      variants={containerVariants}
-      initial="initial"
-      animate="animate"
-      className="min-h-screen bg-gray-50 dark:bg-slate-900"
-    >
-      {/* Navbar */}
-      <MainNavbar 
-        activeTab={activeTab} 
-        onTabChange={setActiveTab}
-        onNavbarPositionChange={setIsNavbarAtBottom}
-        className="sticky top-0 z-50 bg-gray-50/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-800"
-      />
+    <EventsProvider>
+      <motion.div
+        variants={containerVariants}
+        initial="initial"
+        animate="animate"
+        className="min-h-screen bg-gray-50 dark:bg-slate-900"
+      >
+        {/* Navbar */}
+        <MainNavbar
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          onNavbarPositionChange={setIsNavbarAtBottom}
+          className="sticky top-0 z-50 bg-gray-50/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-800"
+        />
 
-      {/* Content Area */}
-      <div className="relative overflow-hidden">
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={activeTab}
-            variants={pageVariants}
-            initial="initial"
-            animate="in"
-            exit="out"
-            className={`py-8 md:pb-8 ${isNavbarAtBottom ? 'pb-20' : 'pb-8'}`}
-          >
-            {renderActiveView()}
-          </motion.div>
-        </AnimatePresence>
-      </div>
+        {/* Content Area */}
+        <div className="relative overflow-hidden">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeTab}
+              variants={pageVariants}
+              initial="initial"
+              animate="in"
+              exit="out"
+              className={`py-8 md:pb-8 ${isNavbarAtBottom ? 'pb-20' : 'pb-8'}`}
+            >
+              {renderActiveView()}
+            </motion.div>
+          </AnimatePresence>
+        </div>
 
-      {/* Background decoration */}
-      <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-400/10 rounded-full blur-3xl"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-purple-400/10 rounded-full blur-3xl"></div>
-      </div>
-    </motion.div>
+        {/* Background decoration */}
+        <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
+          <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-400/10 rounded-full blur-3xl"></div>
+          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-purple-400/10 rounded-full blur-3xl"></div>
+        </div>
+      </motion.div>
+    </EventsProvider>
   );
 } 
