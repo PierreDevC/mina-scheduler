@@ -33,12 +33,6 @@ export default function Navbar() {
             </Link>
             <SignedIn>
               <Link
-                href="/dashboard"
-                className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-              >
-                Dashboard
-              </Link>
-              <Link
                 href="/app"
                 className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
               >
@@ -127,13 +121,6 @@ export default function Navbar() {
               </Link>
               
               <SignedIn>
-                <Link
-                  href="/dashboard"
-                  className="block text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-                  onClick={() => setIsOpen(false)}
-                >
-                  Dashboard
-                </Link>
                 <Link
                   href="/app"
                   className="block text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"

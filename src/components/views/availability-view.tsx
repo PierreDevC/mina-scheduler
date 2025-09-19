@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -60,7 +61,9 @@ export default function AvailabilityView() {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+  const [dropdownPosition, setDropdownPosition] = useState<{x: number, y: number, width: number} | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const triggerRefs = useRef<{[key: string]: HTMLDivElement | null}>({});
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -95,48 +98,95 @@ export default function AvailabilityView() {
 
   const timeOptions = generateTimeOptions();
 
+  // Time conversion functions
+  const convertTo12Hour = (time24: string): string => {
+    if (!time24 || !time24.includes(':')) return '';
+    const [hours, minutes] = time24.split(':');
+    const hour24 = parseInt(hours, 10);
+    const hour12 = hour24 === 0 ? 12 : hour24 > 12 ? hour24 - 12 : hour24;
+    const ampm = hour24 >= 12 ? 'PM' : 'AM';
+    return `${hour12}:${minutes} ${ampm}`;
+  };
+
+  const convertTo24Hour = (time12: string): string => {
+    if (!time12) return '';
+    const parts = time12.trim().split(' ');
+    if (parts.length !== 2) return time12; // Return as-is if not in AM/PM format
+
+    const [time, ampm] = parts;
+    const [hours, minutes] = time.split(':');
+    let hour24 = parseInt(hours, 10);
+
+    if (ampm.toUpperCase() === 'PM' && hour24 !== 12) {
+      hour24 += 12;
+    } else if (ampm.toUpperCase() === 'AM' && hour24 === 12) {
+      hour24 = 0;
+    }
+
+    return `${hour24.toString().padStart(2, '0')}:${minutes}`;
+  };
+
+  // Dropdown Portal Component
+  const DropdownPortal = ({ children, isOpen }: { children: React.ReactNode, isOpen: boolean }) => {
+    if (!isOpen || !dropdownPosition) return null;
+
+    return createPortal(
+      <div
+        style={{
+          position: 'fixed',
+          left: dropdownPosition.x,
+          top: dropdownPosition.y,
+          width: dropdownPosition.width,
+          zIndex: 9999
+        }}
+        className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-md shadow-lg max-h-32 overflow-y-auto"
+      >
+        {children}
+      </div>,
+      document.body
+    );
+  };
+
   // Handle dropdown state
   const toggleDropdown = (dropdownId: string) => {
-    setOpenDropdown(openDropdown === dropdownId ? null : dropdownId);
+    if (openDropdown === dropdownId) {
+      setOpenDropdown(null);
+      setDropdownPosition(null);
+    } else {
+      const triggerElement = triggerRefs.current[dropdownId];
+      if (triggerElement) {
+        const rect = triggerElement.getBoundingClientRect();
+        setDropdownPosition({
+          x: rect.left,
+          y: rect.bottom,
+          width: rect.width
+        });
+      }
+      setOpenDropdown(dropdownId);
+    }
   };
 
   const closeDropdown = () => {
     setOpenDropdown(null);
+    setDropdownPosition(null);
   };
 
   // Handle keyboard input for time selection
+  const handleTimeChange = (value: string, slotId: string, index: number, field: 'startTime' | 'endTime') => {
+    // Convert 12-hour format input to 24-hour for storage
+    const time24 = convertTo24Hour(value);
+    updateTimeSlot(slotId, index, field, time24);
+  };
+
   const handleTimeKeyDown = (e: React.KeyboardEvent, slotId: string, index: number, field: 'startTime' | 'endTime') => {
-    const target = e.target as HTMLInputElement;
-    const currentValue = target.value;
-    
-    // Allow only numbers, colon, and backspace
-    if (!/[0-9:]/.test(e.key) && e.key !== 'Backspace' && e.key !== 'Delete' && e.key !== 'ArrowLeft' && e.key !== 'ArrowRight' && e.key !== 'Tab') {
+    // Allow navigation keys, backspace, delete, space, and alphanumeric for AM/PM
+    const allowedKeys = ['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab', ' '];
+    const isNumberOrColon = /[0-9:]/.test(e.key);
+    const isAMPM = /[apmAMP]/.test(e.key);
+
+    if (!isNumberOrColon && !isAMPM && !allowedKeys.includes(e.key)) {
       e.preventDefault();
       return;
-    }
-    
-    // Auto-format as user types
-    if (e.key !== 'Backspace' && e.key !== 'Delete' && e.key !== 'ArrowLeft' && e.key !== 'ArrowRight' && e.key !== 'Tab') {
-      let newValue = currentValue + e.key;
-      
-      // Auto-add colon after 2 digits
-      if (newValue.length === 2 && !newValue.includes(':')) {
-        newValue = newValue + ':';
-      }
-      
-      // Limit to HH:MM format
-      if (newValue.length > 5) {
-        e.preventDefault();
-        return;
-      }
-      
-      // Validate time format
-      if (newValue.length === 5) {
-        const timeRegex = /^([0-1]?[0-9]|2[0-3]):([0-5][0-9])$/;
-        if (timeRegex.test(newValue)) {
-          updateTimeSlot(slotId, index, field, newValue);
-        }
-      }
     }
   };
 
@@ -334,7 +384,6 @@ export default function AvailabilityView() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-4xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
-              <Clock className="h-8 w-8 text-blue-600" />
               Manage Availability
             </h1>
             <p className="text-gray-600 dark:text-gray-400 mt-2 text-lg">
@@ -429,13 +478,13 @@ export default function AvailabilityView() {
                           key={dayOfWeek}
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
-                          className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600"
+                          className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 overflow-visible"
                         >
                           {/* Toggle Switch */}
                           <Switch
                             checked={isEnabled}
                             onCheckedChange={() => toggleDayAvailability(dayOfWeek)}
-                            className="data-[state=checked]:bg-blue-600"
+                            className="data-[state=checked]:bg-blue-600 cursor-pointer hover:opacity-80 transition-opacity"
                           />
                           
                           {/* Day Name */}
@@ -459,21 +508,24 @@ export default function AvailabilityView() {
                                     key={index}
                                     initial={{ opacity: 0, x: -20 }}
                                     animate={{ opacity: 1, x: 0 }}
-                                    className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3"
+                                    className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3 overflow-visible"
                                   >
                                     {/* Time Inputs with Dropdowns */}
                                     <div className="flex items-center gap-2 flex-shrink-0">
                                       {/* Start Time Input with Dropdown */}
                                       <div className="relative">
-                                        <div className="flex">
+                                        <div
+                                          className="flex"
+                                          ref={(el) => triggerRefs.current[`${daySlot.id}-start-${index}`] = el}
+                                        >
                                           <Input
                                             type="text"
-                                            value={timeSlot.startTime}
-                                            onChange={(e) => updateTimeSlot(daySlot.id, index, "startTime", e.target.value)}
+                                            value={convertTo12Hour(timeSlot.startTime)}
+                                            onChange={(e) => handleTimeChange(e.target.value, daySlot.id, index, "startTime")}
                                             onKeyDown={(e) => handleTimeKeyDown(e, daySlot.id, index, "startTime")}
-                                            placeholder="09:00"
-                                            className="w-20 h-7 text-xs text-center rounded-r-none border-r-0"
-                                            maxLength={5}
+                                            placeholder="9:00 AM"
+                                            className="w-24 h-7 text-xs text-center rounded-r-none border-r-0"
+                                            maxLength={8}
                                           />
                                           <Button
                                             type="button"
@@ -485,8 +537,8 @@ export default function AvailabilityView() {
                                             <ChevronDown className="h-3 w-3" />
                                           </Button>
                                         </div>
-                                        {openDropdown === `${daySlot.id}-start-${index}` && (
-                                          <div ref={dropdownRef} className="absolute top-full left-0 z-50 w-20 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-md shadow-lg max-h-32 overflow-y-auto">
+                                        <DropdownPortal isOpen={openDropdown === `${daySlot.id}-start-${index}`}>
+                                          <div ref={dropdownRef}>
                                             {timeOptions.map((option) => (
                                               <button
                                                 key={option.value}
@@ -501,22 +553,25 @@ export default function AvailabilityView() {
                                               </button>
                                             ))}
                                           </div>
-                                        )}
+                                        </DropdownPortal>
                                       </div>
                                       
                                       <span className="text-gray-500 dark:text-gray-400 text-xs">-</span>
                                       
                                       {/* End Time Input with Dropdown */}
                                       <div className="relative">
-                                        <div className="flex">
+                                        <div
+                                          className="flex"
+                                          ref={(el) => triggerRefs.current[`${daySlot.id}-end-${index}`] = el}
+                                        >
                                           <Input
                                             type="text"
-                                            value={timeSlot.endTime}
-                                            onChange={(e) => updateTimeSlot(daySlot.id, index, "endTime", e.target.value)}
+                                            value={convertTo12Hour(timeSlot.endTime)}
+                                            onChange={(e) => handleTimeChange(e.target.value, daySlot.id, index, "endTime")}
                                             onKeyDown={(e) => handleTimeKeyDown(e, daySlot.id, index, "endTime")}
-                                            placeholder="17:00"
-                                            className="w-20 h-7 text-xs text-center rounded-r-none border-r-0"
-                                            maxLength={5}
+                                            placeholder="5:00 PM"
+                                            className="w-24 h-7 text-xs text-center rounded-r-none border-r-0"
+                                            maxLength={8}
                                           />
                                           <Button
                                             type="button"
@@ -528,8 +583,8 @@ export default function AvailabilityView() {
                                             <ChevronDown className="h-3 w-3" />
                                           </Button>
                                         </div>
-                                        {openDropdown === `${daySlot.id}-end-${index}` && (
-                                          <div ref={dropdownRef} className="absolute top-full left-0 z-50 w-20 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-md shadow-lg max-h-32 overflow-y-auto">
+                                        <DropdownPortal isOpen={openDropdown === `${daySlot.id}-end-${index}`}>
+                                          <div ref={dropdownRef}>
                                             {timeOptions.map((option) => (
                                               <button
                                                 key={option.value}
@@ -544,7 +599,7 @@ export default function AvailabilityView() {
                                               </button>
                                             ))}
                                           </div>
-                                        )}
+                                        </DropdownPortal>
                                       </div>
                                     </div>
                                     
@@ -647,7 +702,7 @@ export default function AvailabilityView() {
                           initial={{ opacity: 0, y: 20 }}
                           animate={{ opacity: 1, y: 0 }}
                           exit={{ opacity: 0, y: -20 }}
-                          className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600"
+                          className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 overflow-visible"
                         >
                             {/* Date Display */}
                             <div className="min-w-[200px] flex-shrink-0">
@@ -667,21 +722,24 @@ export default function AvailabilityView() {
                                     key={index}
                                     initial={{ opacity: 0, x: -20 }}
                                     animate={{ opacity: 1, x: 0 }}
-                                    className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3"
+                                    className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3 overflow-visible"
                                   >
                                     {/* Time Inputs with Dropdowns */}
                                     <div className="flex items-center gap-2 flex-shrink-0">
                                       {/* Start Time Input with Dropdown */}
                                       <div className="relative">
-                                        <div className="flex">
+                                        <div
+                                          className="flex"
+                                          ref={(el) => triggerRefs.current[`${slot.id}-start-${index}`] = el}
+                                        >
                                           <Input
                                             type="text"
-                                            value={timeSlot.startTime}
-                                            onChange={(e) => updateTimeSlot(slot.id, index, "startTime", e.target.value)}
+                                            value={convertTo12Hour(timeSlot.startTime)}
+                                            onChange={(e) => handleTimeChange(e.target.value, slot.id, index, "startTime")}
                                             onKeyDown={(e) => handleTimeKeyDown(e, slot.id, index, "startTime")}
-                                            placeholder="09:00"
-                                            className="w-20 h-7 text-xs text-center rounded-r-none border-r-0"
-                                            maxLength={5}
+                                            placeholder="9:00 AM"
+                                            className="w-24 h-7 text-xs text-center rounded-r-none border-r-0"
+                                            maxLength={8}
                                           />
                                           <Button
                                             type="button"
@@ -693,8 +751,8 @@ export default function AvailabilityView() {
                                             <ChevronDown className="h-3 w-3" />
                                           </Button>
                                         </div>
-                                        {openDropdown === `${slot.id}-start-${index}` && (
-                                          <div ref={dropdownRef} className="absolute top-full left-0 z-50 w-20 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-md shadow-lg max-h-32 overflow-y-auto">
+                                        <DropdownPortal isOpen={openDropdown === `${slot.id}-start-${index}`}>
+                                          <div ref={dropdownRef}>
                                             {timeOptions.map((option) => (
                                               <button
                                                 key={option.value}
@@ -709,22 +767,25 @@ export default function AvailabilityView() {
                                               </button>
                                             ))}
                                           </div>
-                                        )}
+                                        </DropdownPortal>
                                       </div>
                                       
                                       <span className="text-gray-500 dark:text-gray-400 text-xs">-</span>
                                       
                                       {/* End Time Input with Dropdown */}
                                       <div className="relative">
-                                        <div className="flex">
+                                        <div
+                                          className="flex"
+                                          ref={(el) => triggerRefs.current[`${slot.id}-end-${index}`] = el}
+                                        >
                                           <Input
                                             type="text"
-                                            value={timeSlot.endTime}
-                                            onChange={(e) => updateTimeSlot(slot.id, index, "endTime", e.target.value)}
+                                            value={convertTo12Hour(timeSlot.endTime)}
+                                            onChange={(e) => handleTimeChange(e.target.value, slot.id, index, "endTime")}
                                             onKeyDown={(e) => handleTimeKeyDown(e, slot.id, index, "endTime")}
-                                            placeholder="17:00"
-                                            className="w-20 h-7 text-xs text-center rounded-r-none border-r-0"
-                                            maxLength={5}
+                                            placeholder="5:00 PM"
+                                            className="w-24 h-7 text-xs text-center rounded-r-none border-r-0"
+                                            maxLength={8}
                                           />
                                           <Button
                                             type="button"
@@ -736,8 +797,8 @@ export default function AvailabilityView() {
                                             <ChevronDown className="h-3 w-3" />
                                           </Button>
                                         </div>
-                                        {openDropdown === `${slot.id}-end-${index}` && (
-                                          <div ref={dropdownRef} className="absolute top-full left-0 z-50 w-20 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-md shadow-lg max-h-32 overflow-y-auto">
+                                        <DropdownPortal isOpen={openDropdown === `${slot.id}-end-${index}`}>
+                                          <div ref={dropdownRef}>
                                             {timeOptions.map((option) => (
                                               <button
                                                 key={option.value}
@@ -752,7 +813,7 @@ export default function AvailabilityView() {
                                               </button>
                                             ))}
                                           </div>
-                                        )}
+                                        </DropdownPortal>
                                       </div>
                                     </div>
                                     

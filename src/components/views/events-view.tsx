@@ -163,7 +163,11 @@ const getStatusBadge = (status: string) => {
   }
 };
 
-export default function EventsView() {
+interface EventsViewProps {
+  onNavigateToCalendar?: () => void;
+}
+
+export default function EventsView({ onNavigateToCalendar }: EventsViewProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState<FilterType>("all");
   const { setOpen } = useModal();
@@ -249,16 +253,55 @@ export default function EventsView() {
     setSearchQuery(e.target.value);
   };
 
+  // Calculate next 15-minute interval
+  const getNext15MinuteInterval = () => {
+    const now = new Date();
+    const minutes = now.getMinutes();
+    const nextQuarter = Math.ceil(minutes / 15) * 15;
+
+    const startDate = new Date(now);
+    startDate.setMinutes(nextQuarter);
+    startDate.setSeconds(0);
+    startDate.setMilliseconds(0);
+
+    // If we've moved to the next hour (e.g., 60 minutes), adjust accordingly
+    if (nextQuarter >= 60) {
+      startDate.setHours(startDate.getHours() + 1);
+      startDate.setMinutes(0);
+    }
+
+    // End date is 1 hour later
+    const endDate = new Date(startDate);
+    endDate.setHours(endDate.getHours() + 1);
+
+    return { startDate, endDate };
+  };
+
   const handleCreateEvent = () => {
+    const { startDate, endDate } = getNext15MinuteInterval();
+
     setOpen(
       <CustomModal title="Add Event">
         <AddEventModal />
-      </CustomModal>
+      </CustomModal>,
+      async () => {
+        return {
+          startDate,
+          endDate,
+          title: "",
+          id: "",
+          variant: "primary" as const,
+        };
+      }
     );
   };
 
   const handleViewCalendar = () => {
-    router.push("/dashboard?view=calendar");
+    if (onNavigateToCalendar) {
+      onNavigateToCalendar();
+    } else {
+      router.push("/app");
+    }
   };
 
   return (
@@ -525,7 +568,7 @@ export default function EventsView() {
                 </motion.div>
               ))}
             </div>
-            <Button className="w-full mt-6" variant="outline">
+            <Button className="w-full mt-6" variant="outline" onClick={handleViewCalendar}>
               View Full Calendar
             </Button>
           </div>

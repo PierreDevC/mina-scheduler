@@ -395,7 +395,7 @@ export default function AvailabilityModal({ open, onOpenChange }: AvailabilityMo
                         <Switch
                           checked={isEnabled}
                           onCheckedChange={() => toggleDayAvailability(dayOfWeek)}
-                          className="data-[state=checked]:bg-blue-600"
+                          className="data-[state=checked]:bg-blue-600 cursor-pointer hover:opacity-80 transition-opacity"
                         />
                         
                         {/* Day Name */}

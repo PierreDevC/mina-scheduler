@@ -60,7 +60,7 @@ export default function AppPage() {
       case "groups":
         return <GroupsView />;
       case "events":
-        return <EventsView />;
+        return <EventsView onNavigateToCalendar={() => setActiveTab("calendar")} />;
       case "friends":
         return <FriendsView />;
       case "settings":

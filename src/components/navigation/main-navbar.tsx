@@ -177,24 +177,8 @@ export default function MainNavbar({ activeTab, onTabChange, className, onNavbar
 
       {/* Mobile Navbar */}
       <div className={cn("w-full md:hidden", className)}>
-        {/* Mobile Header - Animé */}
-        <motion.div 
-          className="relative z-50 navbar-container"
-          animate={{
-            position: isNavbarAtBottom ? "fixed" : "relative",
-            top: isNavbarAtBottom ? "auto" : 0,
-            bottom: isNavbarAtBottom ? 0 : "auto",
-            left: isNavbarAtBottom ? 0 : "auto",
-            right: isNavbarAtBottom ? 0 : "auto",
-            width: isNavbarAtBottom ? "100%" : "auto",
-          }}
-          transition={{
-            type: "spring",
-            stiffness: 300,
-            damping: 30,
-            duration: 0.6
-          }}
-        >
+        {/* Mobile Header - Always Sticky */}
+        <div className="sticky top-0 z-50 bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm border-b border-gray-200 dark:border-gray-600 navbar-container">
           <motion.div 
             className={cn(
               "flex items-center justify-between px-4 py-4 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-600",
@@ -203,7 +187,7 @@ export default function MainNavbar({ activeTab, onTabChange, className, onNavbar
             layout
           >
             <AnimatePresence mode="wait">
-              {!isNavbarAtBottom ? (
+              {true ? (
                 <motion.div 
                   key="header"
                   className="flex items-center justify-between w-full"
@@ -267,11 +251,11 @@ export default function MainNavbar({ activeTab, onTabChange, className, onNavbar
               )}
             </AnimatePresence>
           </motion.div>
-        </motion.div>
+        </div>
 
         {/* Menu mobile */}
         <AnimatePresence>
-          {isMobileMenuOpen && !isNavbarAtBottom && (
+          {isMobileMenuOpen && (
             <motion.div
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: "auto" }}
