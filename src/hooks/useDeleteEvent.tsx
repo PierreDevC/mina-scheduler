@@ -11,9 +11,10 @@ interface EventToDelete {
 interface UseDeleteEventProps {
   onDelete: (id: string) => void;
   onCancel?: () => void;
+  onSuccess?: () => void; // Callback after successful deletion
 }
 
-export const useDeleteEvent = ({ onDelete, onCancel }: UseDeleteEventProps) => {
+export const useDeleteEvent = ({ onDelete, onCancel, onSuccess }: UseDeleteEventProps) => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [eventToDelete, setEventToDelete] = useState<EventToDelete | null>(null);
 
@@ -34,6 +35,9 @@ export const useDeleteEvent = ({ onDelete, onCancel }: UseDeleteEventProps) => {
       onDelete(idToDelete);
       setIsDeleteModalOpen(false);
       setEventToDelete(null);
+
+      // Call success callback to close parent modal
+      onSuccess?.();
     }
   };
 

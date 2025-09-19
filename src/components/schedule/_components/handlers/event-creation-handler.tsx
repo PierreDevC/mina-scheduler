@@ -60,7 +60,7 @@ export function useEventCreationHandler({ customComponents }: EventCreationHandl
     console.log("🚀 Opening modal with data:", modalData);
     
     setOpen(
-      <CustomModal title="Add Event">
+      <CustomModal title="Add Event" customizedModal={true}>
         <AddEventModal
           CustomAddEventModal={
             customComponents?.CustomEventModal?.CustomAddEventModal?.CustomForm

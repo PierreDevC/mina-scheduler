@@ -129,7 +129,7 @@ export default function CustomModal({
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.3 }}
-              className="fixed inset-0 z-50 flex items-center justify-center bg-background/10 backdrop-blur-sm bg-opacity-50"
+              className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-md"
               onClick={() => handleOpenChange(false)}>
               <motion.div
                 initial={{ scale: 0.9, opacity: 0 }}
@@ -148,7 +148,7 @@ export default function CustomModal({
                 tabIndex={-1}>
                 <div className="flex-shrink-0 p-4 sm:p-6 pb-2">
                   <button 
-                    className="absolute top-2 right-2 sm:top-4 sm:right-4 p-1 rounded-full transition-colors hover:bg-gray-100 dark:hover:bg-gray-800 z-10" 
+                    className="absolute top-2 right-2 sm:top-4 sm:right-4 p-1 rounded-full transition-colors hover:bg-gray-100 dark:hover:bg-gray-800 z-10 cursor-pointer" 
                     onClick={() => handleOpenChange(false)}
                   >
                     <X className="h-4 w-4" />

@@ -161,7 +161,7 @@ export default function WeeklyView({
 
     // Open the modal with the content
     setOpen(
-      <CustomModal title="Add Event">
+      <CustomModal title="Add Event" customizedModal={true}>
         <AddEventModal
           CustomAddEventModal={
             CustomEventModal?.CustomAddEventModal?.CustomForm
@@ -544,7 +544,7 @@ export default function WeeklyView({
                                 e.stopPropagation();
                                 const event = allDayEvents[0];
                                 setOpen(
-                                  <CustomModal title="Edit Event">
+                                  <CustomModal title="Edit Event" customizedModal={true}>
                                     <AddEventModal
                                       CustomAddEventModal={
                                         CustomEventModal?.CustomAddEventModal?.CustomForm

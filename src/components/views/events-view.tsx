@@ -284,7 +284,7 @@ export default function EventsView({ onNavigateToCalendar }: EventsViewProps) {
     const { startDate, endDate } = getNext15MinuteInterval();
 
     setOpen(
-      <CustomModal title="Add Event">
+      <CustomModal title="Add Event" customizedModal={true}>
         <AddEventModal
           onDeleteEvent={deleteEvent}
           onAddEvent={addEvent}
@@ -317,7 +317,7 @@ export default function EventsView({ onNavigateToCalendar }: EventsViewProps) {
 
     if (originalEvent) {
       setOpen(
-        <CustomModal title="Edit Event">
+        <CustomModal title="Edit Event" customizedModal={true}>
           <AddEventModal
             onDeleteEvent={deleteEvent}
             onAddEvent={addEvent}

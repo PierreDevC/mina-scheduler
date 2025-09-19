@@ -64,7 +64,8 @@ export default function AddEventModal({
   // Determine which delete function to use
   const deleteFunc = onDeleteEvent || handlers.handleDeleteEvent;
   const { handleDeleteEvent: handleDelete, DeleteModal } = useDeleteEvent({
-    onDelete: deleteFunc
+    onDelete: deleteFunc,
+    onSuccess: () => setClose() // Close the main modal after successful deletion
   });
 
   const {
@@ -228,7 +229,7 @@ export default function AddEventModal({
   const handleDeleteEventClick = () => {
     if (typedData?.id && typedData?.title) {
       handleDelete(typedData.id, typedData.title);
-      setClose(); // Close the modal after initiating delete
+      // Don't close the modal here - let the delete confirmation handle it
     }
   };
 

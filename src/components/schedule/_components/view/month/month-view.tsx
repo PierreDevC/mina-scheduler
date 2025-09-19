@@ -278,7 +278,7 @@ export default function MonthView({
                           onClick={(e) => {
                             e.stopPropagation();
                             setOpen(
-                              <CustomModal title="Edit Event">
+                              <CustomModal title="Edit Event" customizedModal={true}>
                                 <AddEventModal
                                   CustomAddEventModal={
                                     CustomEventModal?.CustomAddEventModal?.CustomForm

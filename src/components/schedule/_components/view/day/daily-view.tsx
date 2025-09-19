@@ -226,7 +226,7 @@ export default function DailyView({
 
     // Open the modal with the content
     setOpen(
-      <CustomModal title="Add Event">
+      <CustomModal title="Add Event" customizedModal={true}>
         <AddEventModal
           CustomAddEventModal={
             CustomEventModal?.CustomAddEventModal?.CustomForm
@@ -323,7 +323,7 @@ export default function DailyView({
                     )}
                     onClick={() => {
                       setOpen(
-                        <CustomModal title="Edit Event">
+                        <CustomModal title="Edit Event" customizedModal={true}>
                           <AddEventModal
                             CustomAddEventModal={
                               CustomEventModal?.CustomAddEventModal?.CustomForm

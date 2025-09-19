@@ -80,7 +80,7 @@ export default function EventStyled({
   function handleEditEvent(event: Event) {
     // Open the modal with the content
     setOpen(
-      <CustomModal title="Edit Event">
+      <CustomModal title="Edit Event" customizedModal={true}>
         <AddEventModal
           CustomAddEventModal={
             CustomEventModal?.CustomAddEventModal?.CustomForm
