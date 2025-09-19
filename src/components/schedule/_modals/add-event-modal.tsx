@@ -22,6 +22,7 @@ import { EventFormData, eventSchema, Variant, Event, Person } from "@/types/inde
 import { useScheduler } from "@/providers/schedular-provider";
 import { v4 as uuidv4 } from "uuid"; // Use UUID to generate event IDs
 import { Trash2 } from "lucide-react";
+import { useDeleteEvent } from "@/hooks/useDeleteEvent";
 
 export default function AddEventModal({
   CustomAddEventModal,
@@ -59,6 +60,12 @@ export default function AddEventModal({
   const typedData = modalData as Event;
 
   const { handlers } = useScheduler();
+
+  // Determine which delete function to use
+  const deleteFunc = onDeleteEvent || handlers.handleDeleteEvent;
+  const { handleDeleteEvent: handleDelete, DeleteModal } = useDeleteEvent({
+    onDelete: deleteFunc
+  });
 
   const {
     register,
@@ -218,17 +225,10 @@ export default function AddEventModal({
     setClose(); // Close the modal after submission
   };
 
-  const handleDeleteEvent = () => {
+  const handleDeleteEventClick = () => {
     if (typedData?.id && typedData?.title) {
-      if (window.confirm(`Are you sure you want to delete "${typedData.title}"?`)) {
-        // Use provided delete handler if available, otherwise use scheduler context
-        if (onDeleteEvent) {
-          onDeleteEvent(typedData.id);
-        } else {
-          handlers.handleDeleteEvent(typedData.id);
-        }
-        setClose();
-      }
+      handleDelete(typedData.id, typedData.title);
+      setClose(); // Close the modal after initiating delete
     }
   };
 
@@ -355,7 +355,7 @@ export default function AddEventModal({
                 <Button
                   variant="destructive"
                   type="button"
-                  onClick={handleDeleteEvent}
+                  onClick={handleDeleteEventClick}
                   className="flex items-center space-x-2"
                 >
                   <Trash2 className="h-4 w-4" />
@@ -374,6 +374,9 @@ export default function AddEventModal({
           </div>
         </>
       )}
+
+      {/* Delete Confirmation Modal */}
+      <DeleteModal />
     </form>
   );
 }

@@ -125,9 +125,9 @@ export default function GroupsView() {
         </Button>
       </motion.div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="w-full">
         {/* Group Details */}
-        <motion.div variants={itemVariants} className="lg:col-span-2">
+        <motion.div variants={itemVariants}>
           <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-6">
             My Groups
           </h2>
@@ -187,81 +187,6 @@ export default function GroupsView() {
           </div>
         </motion.div>
 
-        {/* Sidebar - Active Members */}
-        <motion.div variants={itemVariants} className="lg:col-span-1">
-          <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
-            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">
-              Active Members - {selectedGroup.name}
-            </h3>
-            <div className="space-y-4">
-              {groupMembers.map((member, index) => (
-                <motion.div
-                  key={member.id}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                  className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
-                >
-                  <div className="relative">
-                    <Avatar className="w-10 h-10">
-                      <AvatarImage src={member.avatar} />
-                      <AvatarFallback>{member.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-                    </Avatar>
-                    {member.online && (
-                      <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white dark:border-slate-800"></div>
-                    )}
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-900 dark:text-white">
-                      {member.name}
-                    </p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
-                      {member.role}
-                    </p>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-            <Button className="w-full mt-6" variant="outline" onClick={handleViewAllMembers}>
-              <EyeIcon className="h-4 w-4 mr-2" />
-              View all members
-            </Button>
-          </div>
-
-          {/* Statistics */}
-          <motion.div
-            variants={itemVariants}
-            className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 mt-6"
-          >
-            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">
-              Statistics
-            </h3>
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <span className="text-gray-600 dark:text-gray-400">Total groups</span>
-                <span className="font-semibold text-gray-900 dark:text-white">1</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-gray-600 dark:text-gray-400">Total members</span>
-                <span className="font-semibold text-gray-900 dark:text-white">
-                  {groupMembers.length}
-                </span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-gray-600 dark:text-gray-400">Active members</span>
-                <span className="font-semibold text-green-600">
-                  {groupMembers.filter(m => m.online).length}
-                </span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-gray-600 dark:text-gray-400">Team leads</span>
-                <span className="font-semibold text-blue-600">
-                  {groupMembers.filter(m => m.role === "Team Lead").length}
-                </span>
-              </div>
-            </div>
-          </motion.div>
-        </motion.div>
       </div>
 
       {/* Group Details Modal */}

@@ -12,6 +12,7 @@ import { useScheduler } from "@/providers/schedular-provider";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import CustomModal from "@/components/ui/custom-modal";
+import { useDeleteEvent } from "@/hooks/useDeleteEvent";
 
 // Function to format date
 const formatDate = (date: Date) => {
@@ -75,6 +76,14 @@ export default function EventStyled({
   const { setOpen } = useModal();
   const { handlers } = useScheduler();
 
+  // Use the shared delete modal
+  const { handleDeleteEvent, DeleteModal } = useDeleteEvent({
+    onDelete: (id: string) => {
+      handlers.handleDeleteEvent(id);
+      onDelete?.(id);
+    }
+  });
+
   // Determine if delete button should be shown
   // Hide it for minimized events to save space, show on hover instead
   const shouldShowDeleteButton = !event?.minmized;
@@ -118,8 +127,7 @@ export default function EventStyled({
       <Button
         onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
           e.stopPropagation();
-          handlers.handleDeleteEvent(event?.id);
-          onDelete?.(event?.id);
+          handleDeleteEvent(event?.id, event?.title || "Untitled Event");
         }}
         variant="destructive"
         size="icon"
@@ -229,6 +237,9 @@ export default function EventStyled({
           </div>
         </div>
       )}
+
+      {/* Delete Confirmation Modal */}
+      <DeleteModal />
     </div>
   );
 }

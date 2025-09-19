@@ -143,11 +143,11 @@ const ProfileModal = ({ friend, isOpen, onClose }: { friend: any, isOpen: boolea
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto p-7">
+        <DialogHeader className="mb-4">
           <DialogTitle className="sr-only">Friend Profile</DialogTitle>
         </DialogHeader>
-        
+
         <div className="space-y-6">
           {/* Header with Avatar and Basic Info */}
           <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 p-6 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-slate-800 dark:to-slate-700 rounded-xl">
@@ -530,34 +530,6 @@ export default function FriendsView() {
             </div>
           </div>
 
-          {/* Departments */}
-          <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
-            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">
-              Departments
-            </h3>
-            <div className="space-y-4">
-              {departments.map((dept, index) => (
-                <motion.div
-                  key={dept.name}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                  className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors cursor-pointer"
-                >
-                  <div className="flex items-center space-x-3">
-                    <div className={`w-3 h-3 ${dept.color} rounded-full`}></div>
-                    <span className="text-sm font-medium text-gray-900 dark:text-white">
-                      {dept.name}
-                    </span>
-                  </div>
-                  <Badge variant="secondary" className="text-xs">
-                    {dept.count}
-                  </Badge>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-
           {/* Favorites */}
           <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
             <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">
@@ -595,36 +567,6 @@ export default function FriendsView() {
             </div>
           </div>
 
-          {/* Statistics */}
-          <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
-            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">
-              Statistics
-            </h3>
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <span className="text-gray-600 dark:text-gray-400">Total friends</span>
-                <span className="font-semibold text-gray-900 dark:text-white">{friends.length}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-gray-600 dark:text-gray-400">Online</span>
-                <span className="font-semibold text-green-600">
-                  {friends.filter(c => c.status === "online").length}
-                </span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-gray-600 dark:text-gray-400">Favorites</span>
-                <span className="font-semibold text-yellow-600">
-                  {friends.filter(c => c.favorite).length}
-                </span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-gray-600 dark:text-gray-400">Departments</span>
-                <span className="font-semibold text-gray-900 dark:text-white">
-                  {departments.length}
-                </span>
-              </div>
-            </div>
-          </div>
         </motion.div>
       </div>
 

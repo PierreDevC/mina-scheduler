@@ -12,10 +12,12 @@ import AddEventModal from "@/components/schedule/_modals/add-event-modal";
 import CustomModal from "@/components/ui/custom-modal";
 import { useRouter } from "next/navigation";
 import { useEvents } from "@/providers/events-context";
+import { useDeleteEvent } from "@/hooks/useDeleteEvent";
 
 // Helper function to convert Event to events view format
 const convertEventToEventsView = (event: any) => ({
-  id: parseInt(event.id),
+  id: event.id, // Keep original string ID for proper deletion
+  originalId: event.id, // Store original ID for reference
   title: event.title,
   description: event.description || "",
   date: event.startDate.toISOString().split('T')[0],
@@ -173,6 +175,7 @@ export default function EventsView({ onNavigateToCalendar }: EventsViewProps) {
   const { setOpen } = useModal();
   const router = useRouter();
   const { events: contextEvents, deleteEvent, addEvent, updateEvent } = useEvents();
+  const { handleDeleteEvent, DeleteModal } = useDeleteEvent({ onDelete: deleteEvent });
 
   // Convert context events to events view format
   const events = useMemo(() => {
@@ -308,11 +311,29 @@ export default function EventsView({ onNavigateToCalendar }: EventsViewProps) {
     }
   };
 
-  const handleDeleteEvent = (eventId: string, eventTitle: string) => {
-    if (window.confirm(`Are you sure you want to delete "${eventTitle}"?`)) {
-      deleteEvent(eventId);
+  const handleEditEvent = (eventId: string) => {
+    // Find the original event from context events using the ID
+    const originalEvent = contextEvents.find(e => e.id === eventId);
+
+    if (originalEvent) {
+      setOpen(
+        <CustomModal title="Edit Event">
+          <AddEventModal
+            onDeleteEvent={deleteEvent}
+            onAddEvent={addEvent}
+            onUpdateEvent={updateEvent}
+          />
+        </CustomModal>,
+        async () => {
+          return {
+            ...originalEvent,
+            invitedPeople: originalEvent.invitedPeople || [],
+          };
+        }
+      );
     }
   };
+
 
   return (
     <motion.div
@@ -331,32 +352,24 @@ export default function EventsView({ onNavigateToCalendar }: EventsViewProps) {
         </p>
       </motion.div>
 
-      {/* Actions and search */}
-      <motion.div variants={itemVariants} className="flex flex-col sm:flex-row gap-4 mb-8">
-        <div className="flex-1">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-            <Input
-              placeholder="Search events..."
-              className="pl-10 pr-10"
-              value={searchQuery}
-              onChange={handleSearchChange}
-            />
-            {searchQuery && (
-              <button
-                onClick={() => setSearchQuery("")}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
-              >
-                <XCircle className="h-4 w-4" />
-              </button>
-            )}
-          </div>
-        </div>
-        <div className="flex gap-2">
-          <Button className="flex items-center gap-2" onClick={handleCreateEvent}>
-            <Plus className="h-4 w-4" />
-            New Event
-          </Button>
+      {/* Search */}
+      <motion.div variants={itemVariants} className="mb-8">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+          <Input
+            placeholder="Search events..."
+            className="pl-10 pr-10"
+            value={searchQuery}
+            onChange={handleSearchChange}
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery("")}
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+            >
+              <XCircle className="h-4 w-4" />
+            </button>
+          )}
         </div>
       </motion.div>
 
@@ -522,7 +535,11 @@ export default function EventsView({ onNavigateToCalendar }: EventsViewProps) {
                     <span className="text-sm text-gray-500 dark:text-gray-400">
                       Organized by {event.organizer}
                     </span>
-                    <Button variant="ghost" size="sm">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleEditEvent(event.id)}
+                    >
                       Details
                     </Button>
                     <Button
@@ -560,63 +577,12 @@ export default function EventsView({ onNavigateToCalendar }: EventsViewProps) {
             </div>
           </div>
 
-          {/* Today's events */}
-          <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
-            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">
-              Today
-            </h3>
-            <div className="space-y-4">
-              {upcomingEvents.map((event, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                  className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
-                >
-                  <div className={`w-3 h-3 ${getEventTypeColor(event.type)} rounded-full`}></div>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-900 dark:text-white">
-                      {event.title}
-                    </p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
-                      {event.time}
-                    </p>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-            <Button className="w-full mt-6" variant="outline" onClick={handleViewCalendar}>
-              View Full Calendar
-            </Button>
-          </div>
-
-          {/* Statistics */}
-          <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
-            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">
-              Statistics
-            </h3>
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <span className="text-gray-600 dark:text-gray-400">Events this month</span>
-                <span className="font-semibold text-gray-900 dark:text-white">{events.length}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-gray-600 dark:text-gray-400">Total attendees</span>
-                <span className="font-semibold text-gray-900 dark:text-white">
-                  {events.reduce((acc, event) => acc + event.attendees, 0)}
-                </span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-gray-600 dark:text-gray-400">High priority events</span>
-                <span className="font-semibold text-red-600">
-                  {events.filter(e => e.priority === "high").length}
-                </span>
-              </div>
-            </div>
-          </div>
         </motion.div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <DeleteModal />
     </motion.div>
   );
 } 
+
