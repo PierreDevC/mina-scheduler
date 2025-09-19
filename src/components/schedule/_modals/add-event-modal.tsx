@@ -21,11 +21,18 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { EventFormData, eventSchema, Variant, Event, Person } from "@/types/index";
 import { useScheduler } from "@/providers/schedular-provider";
 import { v4 as uuidv4 } from "uuid"; // Use UUID to generate event IDs
+import { Trash2 } from "lucide-react";
 
 export default function AddEventModal({
   CustomAddEventModal,
+  onDeleteEvent,
+  onAddEvent,
+  onUpdateEvent,
 }: {
   CustomAddEventModal?: React.FC<{ register: any; errors: any }>;
+  onDeleteEvent?: (id: string) => void;
+  onAddEvent?: (event: Event) => void;
+  onUpdateEvent?: (event: Event) => void;
 }) {
   const { setClose, data } = useModal();
 
@@ -192,9 +199,37 @@ export default function AddEventModal({
       isAllDay: formData.isAllDay,
     };
 
-    if (!typedData?.id) handlers.handleAddEvent(newEvent);
-    else handlers.handleUpdateEvent(newEvent, typedData.id);
+    if (!typedData?.id) {
+      // Adding new event
+      handlers.handleAddEvent(newEvent);
+      // Also call events context if available
+      if (onAddEvent) {
+        onAddEvent(newEvent);
+      }
+    } else {
+      // Updating existing event
+      const updatedEvent = { ...newEvent, id: typedData.id };
+      handlers.handleUpdateEvent(updatedEvent, typedData.id);
+      // Also call events context if available
+      if (onUpdateEvent) {
+        onUpdateEvent(updatedEvent);
+      }
+    }
     setClose(); // Close the modal after submission
+  };
+
+  const handleDeleteEvent = () => {
+    if (typedData?.id && typedData?.title) {
+      if (window.confirm(`Are you sure you want to delete "${typedData.title}"?`)) {
+        // Use provided delete handler if available, otherwise use scheduler context
+        if (onDeleteEvent) {
+          onDeleteEvent(typedData.id);
+        } else {
+          handlers.handleDeleteEvent(typedData.id);
+        }
+        setClose();
+      }
+    }
   };
 
   return (
@@ -314,11 +349,28 @@ export default function AddEventModal({
             </DropdownMenu>
           </div>
 
-          <div className="flex justify-end space-x-2 mt-4 pt-2 border-t">
-            <Button variant="outline" type="button" onClick={() => setClose()}>
-              Cancel
-            </Button>
-            <Button type="submit">Save Event</Button>
+          <div className="flex justify-between items-center mt-4 pt-2 border-t">
+            <div>
+              {typedData?.id && (
+                <Button
+                  variant="destructive"
+                  type="button"
+                  onClick={handleDeleteEvent}
+                  className="flex items-center space-x-2"
+                >
+                  <Trash2 className="h-4 w-4" />
+                  <span>Delete Event</span>
+                </Button>
+              )}
+            </div>
+            <div className="flex space-x-2">
+              <Button variant="outline" type="button" onClick={() => setClose()}>
+                Cancel
+              </Button>
+              <Button type="submit">
+                {typedData?.id ? "Update Event" : "Save Event"}
+              </Button>
+            </div>
           </div>
         </>
       )}

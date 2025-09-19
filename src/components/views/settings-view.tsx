@@ -68,12 +68,12 @@ const itemVariants = {
 
 // Mock user data
 const mockUser = {
-  name: "Sophie Martin",
-  email: "sophie.martin@example.com",
+  name: "Pierre Sylvestre Cypré",
+  email: "pierre.cypre@example.com",
   avatar: "/api/placeholder/100/100",
-  role: "Project Manager",
-  department: "Marketing",
-  timezone: "Europe/Paris",
+  role: "Software Engineer",
+  department: "Development",
+  timezone: "America/New_York",
   language: "English",
 };
 

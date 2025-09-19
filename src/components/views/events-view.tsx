@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
-import { Calendar, Clock, MapPin, Users, Plus, Filter, Search, XCircle, CheckCircle, X, RotateCcw, History, AlertCircle } from "lucide-react";
+import { Calendar, Clock, MapPin, Users, Plus, Filter, Search, XCircle, CheckCircle, X, RotateCcw, History, AlertCircle, Trash2 } from "lucide-react";
 import { useModal } from "@/providers/modal-context";
 import AddEventModal from "@/components/schedule/_modals/add-event-modal";
 import CustomModal from "@/components/ui/custom-modal";
@@ -172,7 +172,7 @@ export default function EventsView({ onNavigateToCalendar }: EventsViewProps) {
   const [activeFilter, setActiveFilter] = useState<FilterType>("all");
   const { setOpen } = useModal();
   const router = useRouter();
-  const { events: contextEvents } = useEvents();
+  const { events: contextEvents, deleteEvent, addEvent, updateEvent } = useEvents();
 
   // Convert context events to events view format
   const events = useMemo(() => {
@@ -282,7 +282,11 @@ export default function EventsView({ onNavigateToCalendar }: EventsViewProps) {
 
     setOpen(
       <CustomModal title="Add Event">
-        <AddEventModal />
+        <AddEventModal
+          onDeleteEvent={deleteEvent}
+          onAddEvent={addEvent}
+          onUpdateEvent={updateEvent}
+        />
       </CustomModal>,
       async () => {
         return {
@@ -301,6 +305,12 @@ export default function EventsView({ onNavigateToCalendar }: EventsViewProps) {
       onNavigateToCalendar();
     } else {
       router.push("/app");
+    }
+  };
+
+  const handleDeleteEvent = (eventId: string, eventTitle: string) => {
+    if (window.confirm(`Are you sure you want to delete "${eventTitle}"?`)) {
+      deleteEvent(eventId);
     }
   };
 
@@ -514,6 +524,14 @@ export default function EventsView({ onNavigateToCalendar }: EventsViewProps) {
                     </span>
                     <Button variant="ghost" size="sm">
                       Details
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleDeleteEvent(event.id, event.title)}
+                      className="text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
+                    >
+                      <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
                 </div>
