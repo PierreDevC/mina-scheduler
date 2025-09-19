@@ -10,9 +10,10 @@ interface EventToDelete {
 
 interface UseDeleteEventProps {
   onDelete: (id: string) => void;
+  onCancel?: () => void;
 }
 
-export const useDeleteEvent = ({ onDelete }: UseDeleteEventProps) => {
+export const useDeleteEvent = ({ onDelete, onCancel }: UseDeleteEventProps) => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [eventToDelete, setEventToDelete] = useState<EventToDelete | null>(null);
 
@@ -39,6 +40,7 @@ export const useDeleteEvent = ({ onDelete }: UseDeleteEventProps) => {
   const cancelDeleteEvent = () => {
     setIsDeleteModalOpen(false);
     setEventToDelete(null);
+    onCancel?.(); // Call the cancel callback if provided
   };
 
   const DeleteModal = () => (

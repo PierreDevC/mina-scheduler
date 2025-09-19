@@ -7,12 +7,11 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useModal } from "@/providers/modal-context";
 import AddEventModal from "@/components/schedule/_modals/add-event-modal";
 import { Event, CustomEventModal } from "@/types";
-import { TrashIcon, CalendarIcon, ClockIcon, Users } from "lucide-react";
+import { CalendarIcon, ClockIcon, Users } from "lucide-react";
 import { useScheduler } from "@/providers/schedular-provider";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import CustomModal from "@/components/ui/custom-modal";
-import { useDeleteEvent } from "@/hooks/useDeleteEvent";
 
 // Function to format date
 const formatDate = (date: Date) => {
@@ -76,17 +75,6 @@ export default function EventStyled({
   const { setOpen } = useModal();
   const { handlers } = useScheduler();
 
-  // Use the shared delete modal
-  const { handleDeleteEvent, DeleteModal } = useDeleteEvent({
-    onDelete: (id: string) => {
-      handlers.handleDeleteEvent(id);
-      onDelete?.(id);
-    }
-  });
-
-  // Determine if delete button should be shown
-  // Hide it for minimized events to save space, show on hover instead
-  const shouldShowDeleteButton = !event?.minmized;
 
   // Handler function
   function handleEditEvent(event: Event) {
@@ -123,21 +111,6 @@ export default function EventStyled({
         event?.minmized ? "border-transparent" : "border-default-400/60"
       )}
     >
-      {/* Delete button - shown by default for non-minimized, or on hover for minimized */}
-      <Button
-        onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
-          e.stopPropagation();
-          handleDeleteEvent(event?.id, event?.title || "Untitled Event");
-        }}
-        variant="destructive"
-        size="icon"
-        className={cn(
-          "absolute z-[100] right-1 top-[-8px] h-6 w-6 p-0 shadow-md hover:bg-destructive/90 transition-all duration-200",
-          event?.minmized ? "opacity-0 group-hover:opacity-100" : "opacity-100"
-        )}
-      >
-        <TrashIcon size={14} className="text-destructive-foreground" />
-      </Button>
 
       {event.CustomEventComponent ? (
         <div
@@ -237,9 +210,6 @@ export default function EventStyled({
           </div>
         </div>
       )}
-
-      {/* Delete Confirmation Modal */}
-      <DeleteModal />
     </div>
   );
 }
