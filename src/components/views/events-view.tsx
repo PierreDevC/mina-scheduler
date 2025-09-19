@@ -352,6 +352,18 @@ export default function EventsView({ onNavigateToCalendar }: EventsViewProps) {
         </p>
       </motion.div>
 
+      {/* Quick Actions */}
+      <motion.div variants={itemVariants} className="flex flex-wrap gap-4 mb-8">
+        <Button className="flex items-center gap-2" onClick={handleCreateEvent}>
+          <Plus className="h-4 w-4" />
+          Create Event
+        </Button>
+        <Button variant="outline" className="flex items-center gap-2" onClick={handleViewCalendar}>
+          <Calendar className="h-4 w-4" />
+          View Calendar
+        </Button>
+      </motion.div>
+
       {/* Search */}
       <motion.div variants={itemVariants} className="mb-8">
         <div className="relative">
@@ -411,28 +423,9 @@ export default function EventsView({ onNavigateToCalendar }: EventsViewProps) {
         </div>
       </motion.div>
 
-      {/* Mobile Quick Actions - shown above events list on mobile only */}
-      <motion.div variants={itemVariants} className="mb-8 lg:hidden">
-        <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
-          <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">
-            Quick Actions
-          </h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <Button className="w-full justify-start" size="lg" onClick={handleCreateEvent}>
-              <Plus className="mr-3 h-4 w-4" />
-              Create Event
-            </Button>
-            <Button className="w-full justify-start" variant="outline" size="lg" onClick={handleViewCalendar}>
-              <Calendar className="mr-3 h-4 w-4" />
-              View Calendar
-            </Button>
-          </div>
-        </div>
-      </motion.div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Events list */}
-        <motion.div variants={itemVariants} className="lg:col-span-2">
+      {/* Events list */}
+      <motion.div variants={itemVariants}>
           <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-6">
             {filterOptions.find(f => f.id === activeFilter)?.label} ({filteredEvents.length})
           </h2>
@@ -556,29 +549,7 @@ export default function EventsView({ onNavigateToCalendar }: EventsViewProps) {
               ))
             )}
           </div>
-        </motion.div>
-
-        {/* Sidebar */}
-        <motion.div variants={itemVariants} className="lg:col-span-1 space-y-6">
-          {/* Quick actions - Desktop only */}
-          <div className="hidden lg:block bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
-            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">
-              Quick Actions
-            </h3>
-            <div className="space-y-3">
-              <Button className="w-full justify-start" size="lg" onClick={handleCreateEvent}>
-                <Plus className="mr-3 h-4 w-4" />
-                Create Event
-              </Button>
-              <Button className="w-full justify-start" variant="outline" size="lg" onClick={handleViewCalendar}>
-                <Calendar className="mr-3 h-4 w-4" />
-                View Calendar
-              </Button>
-            </div>
-          </div>
-
-        </motion.div>
-      </div>
+      </motion.div>
 
       {/* Delete Confirmation Modal */}
       <DeleteModal />

@@ -3,19 +3,22 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { 
-  Calendar, 
-  Users, 
-  CalendarDays, 
+import {
+  Calendar,
+  Users,
+  CalendarDays,
   Contact,
   Clock,
   Menu,
   X,
   LogOut,
   User,
-  Settings
+  Settings,
+  Bell
 } from "lucide-react";
 import { UserButton, SignedIn, SignedOut, SignInButton, useUser } from "@clerk/nextjs";
+import NotificationModal from "@/components/notifications/notification-modal";
+import FullNotificationsModal from "@/components/notifications/full-notifications-modal";
 
 interface NavItem {
   id: string;
@@ -73,6 +76,8 @@ const navItems: NavItem[] = [
 export default function MainNavbar({ activeTab, onTabChange, className, onNavbarPositionChange }: MainNavbarProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isNavbarAtBottom, setIsNavbarAtBottom] = useState(false);
+  const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
+  const [isFullNotificationModalOpen, setIsFullNotificationModalOpen] = useState(false);
   const { scrollY } = useScroll();
   const { user } = useUser();
 
@@ -157,12 +162,32 @@ export default function MainNavbar({ activeTab, onTabChange, className, onNavbar
           
           <SignedIn>
             <div className="flex items-center space-x-3">
+              {/* Notifications */}
+              <div className="relative">
+                <button
+                  onClick={() => setIsNotificationModalOpen(!isNotificationModalOpen)}
+                  className="relative p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+                >
+                  <Bell className="h-5 w-5" />
+                  {/* Notification badge */}
+                  <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full flex items-center justify-center">
+                    <span className="text-xs text-white font-medium">3</span>
+                  </div>
+                </button>
+
+                <NotificationModal
+                  isOpen={isNotificationModalOpen}
+                  onClose={() => setIsNotificationModalOpen(false)}
+                  onViewAll={() => setIsFullNotificationModalOpen(true)}
+                />
+              </div>
+
               {user && (
                 <span className="text-sm text-gray-600 dark:text-gray-400">
                   Hello, {user.firstName || user.emailAddresses[0]?.emailAddress}
                 </span>
               )}
-              <UserButton 
+              <UserButton
                 afterSignOutUrl="/"
                 appearance={{
                   elements: {
@@ -201,9 +226,29 @@ export default function MainNavbar({ activeTab, onTabChange, className, onNavbar
                   
                   <div className="flex items-center space-x-2">
                     <SignedIn>
+                      {/* Mobile Notifications */}
+                      <div className="relative">
+                        <button
+                          onClick={() => setIsNotificationModalOpen(!isNotificationModalOpen)}
+                          className="relative p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+                        >
+                          <Bell className="h-5 w-5" />
+                          {/* Notification badge */}
+                          <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full flex items-center justify-center">
+                            <span className="text-xs text-white font-medium">3</span>
+                          </div>
+                        </button>
+
+                        <NotificationModal
+                          isOpen={isNotificationModalOpen}
+                          onClose={() => setIsNotificationModalOpen(false)}
+                          onViewAll={() => setIsFullNotificationModalOpen(true)}
+                        />
+                      </div>
+
                       <UserButton afterSignOutUrl="/" />
                     </SignedIn>
-                    
+
                     <button
                       onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                       className="p-2 rounded-lg bg-white dark:bg-gray-800 shadow-lg border border-gray-200 dark:border-gray-600"
@@ -309,6 +354,16 @@ export default function MainNavbar({ activeTab, onTabChange, className, onNavbar
           )}
         </AnimatePresence>
       </div>
+
+      {/* Full Notifications Modal */}
+      <FullNotificationsModal
+        isOpen={isFullNotificationModalOpen}
+        onClose={() => setIsFullNotificationModalOpen(false)}
+        notifications={[]}
+        onMarkAsRead={(id) => console.log("Mark as read:", id)}
+        onMarkAllAsRead={() => console.log("Mark all as read")}
+        onDeleteNotification={(id) => console.log("Delete notification:", id)}
+      />
     </>
   );
 } 

@@ -11,22 +11,39 @@ import {
   DialogHeader, 
   DialogTitle 
 } from "@/components/ui/dialog";
-import { Users, Plus, Settings, UserPlus, Crown, Shield, Eye, EyeIcon } from "lucide-react";
+import { Users, Plus, Crown, Shield, Eye, EyeIcon, Wrench } from "lucide-react";
 import { mockFriends } from "@/data/mockFriends";
 import { Person } from "@/types/index";
+import CreateGroupModal from "@/components/groups/_modals/create-group-modal";
+import EditGroupModal from "@/components/groups/_modals/edit-group-modal";
 
-// Single Coffee Only group
-const coffeeOnlyGroup = {
-  id: 1,
-  name: "Coffee Only",
-  description: "Development team focused on building amazing applications",
-  members: mockFriends.length,
-  color: "bg-amber-500",
-  role: "admin",
-  avatar: "/api/placeholder/40/40",
-  createdDate: "2024-01-01",
-  lastActivity: "2024-01-15",
-};
+// Define Group interface
+interface Group {
+  id: number;
+  name: string;
+  description: string;
+  members: Person[];
+  color: string;
+  role: string;
+  avatar: string;
+  createdDate: string;
+  lastActivity: string;
+}
+
+// Initial Coffee Only group
+const initialGroups: Group[] = [
+  {
+    id: 1,
+    name: "Coffee Only",
+    description: "Development team focused on building amazing applications",
+    members: mockFriends,
+    color: "bg-amber-500",
+    role: "admin",
+    avatar: "/api/placeholder/40/40",
+    createdDate: "2024-01-01",
+    lastActivity: "2024-01-15",
+  },
+];
 
 // Add online status and roles to friends data for group members
 const groupMembers: (Person & { online: boolean; role: string; joinDate: string })[] = mockFriends.map((friend, index) => ({
@@ -81,8 +98,11 @@ const getRoleBadge = (role: string) => {
 };
 
 export default function GroupsView() {
-  const [selectedGroup, setSelectedGroup] = useState(coffeeOnlyGroup);
+  const [groups, setGroups] = useState<Group[]>(initialGroups);
+  const [selectedGroup, setSelectedGroup] = useState<Group | null>(null);
   const [isGroupModalOpen, setIsGroupModalOpen] = useState(false);
+  const [isCreateGroupModalOpen, setIsCreateGroupModalOpen] = useState(false);
+  const [isEditGroupModalOpen, setIsEditGroupModalOpen] = useState(false);
 
   const handleViewDetails = () => {
     setIsGroupModalOpen(true);
@@ -90,6 +110,42 @@ export default function GroupsView() {
 
   const handleViewAllMembers = () => {
     setIsGroupModalOpen(true);
+  };
+
+  const handleCreateGroup = (groupData: any) => {
+    const newGroup: Group = {
+      id: Date.now(), // Simple ID generation
+      name: groupData.name,
+      description: groupData.description,
+      members: groupData.members,
+      color: "bg-blue-500", // Default color for new groups
+      role: "admin",
+      avatar: "/api/placeholder/40/40",
+      createdDate: groupData.createdDate,
+      lastActivity: groupData.createdDate,
+    };
+
+    setGroups(prevGroups => [...prevGroups, newGroup]);
+    console.log("New group created:", newGroup);
+  };
+
+  const handleUpdateGroup = (updatedGroup: Group) => {
+    setGroups(prevGroups =>
+      prevGroups.map(group =>
+        group.id === updatedGroup.id ? updatedGroup : group
+      )
+    );
+    console.log("Group updated:", updatedGroup);
+  };
+
+  const handleDeleteGroup = (groupId: number) => {
+    setGroups(prevGroups => prevGroups.filter(group => group.id !== groupId));
+    console.log("Group deleted:", groupId);
+  };
+
+  const handleEditGroup = (group: Group) => {
+    setSelectedGroup(group);
+    setIsEditGroupModalOpen(true);
   };
 
   return (
@@ -111,17 +167,12 @@ export default function GroupsView() {
 
       {/* Quick Actions */}
       <motion.div variants={itemVariants} className="flex flex-wrap gap-4 mb-8">
-        <Button className="flex items-center gap-2">
+        <Button
+          className="flex items-center gap-2"
+          onClick={() => setIsCreateGroupModalOpen(true)}
+        >
           <Plus className="h-4 w-4" />
           Create Group
-        </Button>
-        <Button variant="outline" className="flex items-center gap-2">
-          <UserPlus className="h-4 w-4" />
-          Invite Members
-        </Button>
-        <Button variant="outline" className="flex items-center gap-2">
-          <Settings className="h-4 w-4" />
-          Group Settings
         </Button>
       </motion.div>
 
@@ -129,157 +180,205 @@ export default function GroupsView() {
         {/* Group Details */}
         <motion.div variants={itemVariants}>
           <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-6">
-            My Groups
+            My Groups ({groups.length})
           </h2>
           <div className="grid grid-cols-1 gap-6">
-            <motion.div
-              variants={itemVariants}
-              whileHover={{ scale: 1.02, y: -2 }}
-              className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow cursor-pointer"
-              onClick={() => setSelectedGroup(coffeeOnlyGroup)}
-            >
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex items-center space-x-3">
-                  <div className={`w-12 h-12 ${coffeeOnlyGroup.color} rounded-lg flex items-center justify-center`}>
-                    <Users className="h-6 w-6 text-white" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-gray-900 dark:text-white">
-                      {coffeeOnlyGroup.name}
-                    </h3>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                      {coffeeOnlyGroup.members} members
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center space-x-2">
-                  {getRoleIcon(coffeeOnlyGroup.role)}
-                  {getRoleBadge(coffeeOnlyGroup.role)}
-                </div>
-              </div>
-              <p className="text-gray-600 dark:text-gray-300 text-sm mb-4">
-                {coffeeOnlyGroup.description}
-              </p>
-              <div className="flex items-center justify-between">
-                <div className="flex -space-x-2">
-                  {groupMembers.slice(0, 4).map((member, i) => (
-                    <Avatar key={member.id} className="w-8 h-8 border-2 border-white dark:border-slate-800">
-                      <AvatarImage src={member.avatar} />
-                      <AvatarFallback className="text-xs">
-                        {member.name.split(' ').map(n => n[0]).join('')}
-                      </AvatarFallback>
-                    </Avatar>
-                  ))}
-                  {coffeeOnlyGroup.members > 4 && (
-                    <div className="w-8 h-8 bg-gray-200 dark:bg-gray-600 rounded-full border-2 border-white dark:border-slate-800 flex items-center justify-center">
-                      <span className="text-xs text-gray-600 dark:text-gray-300">
-                        +{coffeeOnlyGroup.members - 4}
-                      </span>
+            {groups.map((group) => {
+              const groupMembersWithRoles = group.members.map((member, index) => ({
+                ...member,
+                online: index % 3 !== 0,
+                role: index === 0 ? "Team Lead" : index === 1 ? "Senior Developer" : "Developer",
+                joinDate: `2024-01-${String(index + 1).padStart(2, '0')}`,
+              }));
+
+              return (
+                <motion.div
+                  key={group.id}
+                  variants={itemVariants}
+                  whileHover={{ scale: 1.02, y: -2 }}
+                  className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow cursor-pointer"
+                  onClick={() => {
+                    setSelectedGroup(group);
+                    setIsGroupModalOpen(true);
+                  }}
+                >
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex items-center space-x-3">
+                      <div className={`w-12 h-12 ${group.color} rounded-lg flex items-center justify-center`}>
+                        <Users className="h-6 w-6 text-white" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-gray-900 dark:text-white">
+                          {group.name}
+                        </h3>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                          {group.members.length} members
+                        </p>
+                      </div>
                     </div>
-                  )}
-                </div>
-                <Button variant="ghost" size="sm" onClick={handleViewDetails}>
-                  <Eye className="h-4 w-4 mr-2" />
-                  View details
-                </Button>
-              </div>
-            </motion.div>
+                    <div className="flex items-center space-x-2">
+                      {getRoleIcon(group.role)}
+                      {getRoleBadge(group.role)}
+                    </div>
+                  </div>
+                  <p className="text-gray-600 dark:text-gray-300 text-sm mb-4">
+                    {group.description}
+                  </p>
+                  <div className="flex items-center justify-between">
+                    <div className="flex -space-x-2">
+                      {group.members.slice(0, 4).map((member, i) => (
+                        <Avatar key={member.id} className="w-8 h-8 border-2 border-white dark:border-slate-800">
+                          <AvatarImage src={member.avatar} />
+                          <AvatarFallback className="text-xs">
+                            {member.name.split(' ').map(n => n[0]).join('')}
+                          </AvatarFallback>
+                        </Avatar>
+                      ))}
+                      {group.members.length > 4 && (
+                        <div className="w-8 h-8 bg-gray-200 dark:bg-gray-600 rounded-full border-2 border-white dark:border-slate-800 flex items-center justify-center">
+                          <span className="text-xs text-gray-600 dark:text-gray-300">
+                            +{group.members.length - 4}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleEditGroup(group);
+                      }}
+                    >
+                      <Wrench className="h-4 w-4 mr-2" />
+                      Edit Group
+                    </Button>
+                  </div>
+                </motion.div>
+              );
+            })}
           </div>
         </motion.div>
 
       </div>
 
       {/* Group Details Modal */}
-      <Dialog open={isGroupModalOpen} onOpenChange={setIsGroupModalOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="text-2xl font-bold">
-              {selectedGroup.name} - Group Details
-            </DialogTitle>
-          </DialogHeader>
-          
-          <div className="space-y-6">
-            {/* Group Info */}
-            <div className="bg-gray-50 dark:bg-gray-800 p-6 rounded-xl">
-              <div className="flex items-center space-x-4 mb-4">
-                <div className={`w-16 h-16 ${selectedGroup.color} rounded-lg flex items-center justify-center`}>
-                  <Users className="h-8 w-8 text-white" />
-                </div>
-                <div>
-                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-                    {selectedGroup.name}
-                  </h3>
-                  <p className="text-gray-600 dark:text-gray-400">
-                    {selectedGroup.description}
-                  </p>
-                </div>
-              </div>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                <div>
-                  <span className="text-gray-500 dark:text-gray-400">Members:</span>
-                  <p className="font-semibold">{selectedGroup.members}</p>
-                </div>
-                <div>
-                  <span className="text-gray-500 dark:text-gray-400">Created:</span>
-                  <p className="font-semibold">{selectedGroup.createdDate}</p>
-                </div>
-                <div>
-                  <span className="text-gray-500 dark:text-gray-400">Last Activity:</span>
-                  <p className="font-semibold">{selectedGroup.lastActivity}</p>
-                </div>
-                <div>
-                  <span className="text-gray-500 dark:text-gray-400">Your Role:</span>
-                  <p className="font-semibold capitalize">{selectedGroup.role}</p>
-                </div>
-              </div>
-            </div>
+      {selectedGroup && (
+        <Dialog open={isGroupModalOpen} onOpenChange={setIsGroupModalOpen}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="text-2xl font-bold">
+                {selectedGroup.name} - Group Details
+              </DialogTitle>
+            </DialogHeader>
 
-            {/* Members List */}
-            <div>
-              <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                All Members ({groupMembers.length})
-              </h4>
-              <div className="space-y-3">
-                {groupMembers.map((member) => (
-                  <div
-                    key={member.id}
-                    className="flex items-center space-x-4 p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700"
-                  >
-                    <div className="relative">
-                      <Avatar className="w-12 h-12">
-                        <AvatarImage src={member.avatar} />
-                        <AvatarFallback>{member.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-                      </Avatar>
-                      {member.online && (
-                        <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white dark:border-gray-800"></div>
-                      )}
-                    </div>
-                    <div className="flex-1">
-                      <h5 className="font-medium text-gray-900 dark:text-white">
-                        {member.name}
-                      </h5>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
-                        {member.email}
-                      </p>
-                      <p className="text-xs text-gray-400 dark:text-gray-500">
-                        {member.role} • Joined {member.joinDate}
-                      </p>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Badge variant={member.online ? "default" : "secondary"}>
-                        {member.online ? "Online" : "Offline"}
-                      </Badge>
-                      <Badge variant="outline">
-                        {member.department}
-                      </Badge>
-                    </div>
+            <div className="space-y-6">
+              {/* Group Info */}
+              <div className="bg-gray-50 dark:bg-gray-800 p-6 rounded-xl">
+                <div className="flex items-center space-x-4 mb-4">
+                  <div className={`w-16 h-16 ${selectedGroup.color} rounded-lg flex items-center justify-center`}>
+                    <Users className="h-8 w-8 text-white" />
                   </div>
-                ))}
+                  <div>
+                    <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+                      {selectedGroup.name}
+                    </h3>
+                    <p className="text-gray-600 dark:text-gray-400">
+                      {selectedGroup.description}
+                    </p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                  <div>
+                    <span className="text-gray-500 dark:text-gray-400">Members:</span>
+                    <p className="font-semibold">{selectedGroup.members.length}</p>
+                  </div>
+                  <div>
+                    <span className="text-gray-500 dark:text-gray-400">Created:</span>
+                    <p className="font-semibold">{selectedGroup.createdDate}</p>
+                  </div>
+                  <div>
+                    <span className="text-gray-500 dark:text-gray-400">Last Activity:</span>
+                    <p className="font-semibold">{selectedGroup.lastActivity}</p>
+                  </div>
+                  <div>
+                    <span className="text-gray-500 dark:text-gray-400">Your Role:</span>
+                    <p className="font-semibold capitalize">{selectedGroup.role}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Members List */}
+              <div>
+                <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                  All Members ({selectedGroup.members.length})
+                </h4>
+                <div className="space-y-3">
+                  {selectedGroup.members.map((member, index) => {
+                    const memberWithRole = {
+                      ...member,
+                      online: index % 3 !== 0,
+                      role: index === 0 ? "Team Lead" : index === 1 ? "Senior Developer" : "Developer",
+                      joinDate: `2024-01-${String(index + 1).padStart(2, '0')}`,
+                    };
+                    return (
+                      <div
+                        key={member.id}
+                        className="flex items-center space-x-4 p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700"
+                      >
+                        <div className="relative">
+                          <Avatar className="w-12 h-12">
+                            <AvatarImage src={member.avatar} />
+                            <AvatarFallback>{member.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                          </Avatar>
+                          {memberWithRole.online && (
+                            <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white dark:border-gray-800"></div>
+                          )}
+                        </div>
+                        <div className="flex-1">
+                          <h5 className="font-medium text-gray-900 dark:text-white">
+                            {member.name}
+                          </h5>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">
+                            {member.email}
+                          </p>
+                          <p className="text-xs text-gray-400 dark:text-gray-500">
+                            {memberWithRole.role} • Joined {memberWithRole.joinDate}
+                          </p>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Badge variant={memberWithRole.online ? "default" : "secondary"}>
+                            {memberWithRole.online ? "Online" : "Offline"}
+                          </Badge>
+                          <Badge variant="outline">
+                            {member.department}
+                          </Badge>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* Create Group Modal */}
+      <CreateGroupModal
+        isOpen={isCreateGroupModalOpen}
+        onClose={() => setIsCreateGroupModalOpen(false)}
+        onCreateGroup={handleCreateGroup}
+      />
+
+      {/* Edit Group Modal */}
+      <EditGroupModal
+        isOpen={isEditGroupModalOpen}
+        onClose={() => setIsEditGroupModalOpen(false)}
+        group={selectedGroup}
+        onUpdateGroup={handleUpdateGroup}
+        onDeleteGroup={handleDeleteGroup}
+      />
     </motion.div>
   );
 } 

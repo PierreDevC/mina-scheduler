@@ -29,6 +29,7 @@ import {
   Clock,
   XCircle
 } from "lucide-react";
+import AddFriendModal from "@/components/friends/_modals/add-friend-modal";
 
 const friends = [
   {
@@ -289,6 +290,7 @@ const ProfileModal = ({ friend, isOpen, onClose }: { friend: any, isOpen: boolea
 export default function FriendsView() {
   const [selectedFriend, setSelectedFriend] = useState<any>(null);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [isAddFriendModalOpen, setIsAddFriendModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
   const handleViewProfile = (friend: any) => {
@@ -320,6 +322,11 @@ export default function FriendsView() {
     setSearchQuery(e.target.value);
   };
 
+  const handleSendInvite = (email: string) => {
+    console.log("Sending invite to:", email);
+    // Here you would typically call your API to send the invite
+  };
+
   return (
     <motion.div
       variants={containerVariants}
@@ -337,71 +344,45 @@ export default function FriendsView() {
         </p>
       </motion.div>
 
-      {/* Actions and search */}
-      <motion.div variants={itemVariants} className="flex flex-col sm:flex-row gap-4 mb-8">
-        <div className="flex-1">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-            <Input
-              placeholder="Search for a friend..."
-              className="pl-10 pr-10"
-              value={searchQuery}
-              onChange={handleSearchChange}
-            />
-            {searchQuery && (
-              <button
-                onClick={() => setSearchQuery("")}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
-              >
-                <XCircle className="h-4 w-4" />
-              </button>
-            )}
-          </div>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline" className="flex items-center gap-2">
-            <Filter className="h-4 w-4" />
-            Filter
-          </Button>
+      {/* Add Friend Button */}
+      <motion.div variants={itemVariants} className="mb-8">
+        <Button
+          className="flex items-center gap-2"
+          onClick={() => setIsAddFriendModalOpen(true)}
+        >
+          <Plus className="h-4 w-4" />
+          Add or Invite New Friends
+        </Button>
+      </motion.div>
+
+      {/* Search */}
+      <motion.div variants={itemVariants} className="mb-8">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+          <Input
+            placeholder="Search for a friend..."
+            className="pl-10 pr-10"
+            value={searchQuery}
+            onChange={handleSearchChange}
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery("")}
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+            >
+              <XCircle className="h-4 w-4" />
+            </button>
+          )}
         </div>
       </motion.div>
 
-      {/* Mobile Quick Actions - shown above friends list on mobile only */}
-      <motion.div variants={itemVariants} className="mb-8 lg:hidden">
-        <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
-          <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">
-            Quick Actions
-          </h3>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <Button className="w-full justify-start" size="lg">
-              <Plus className="mr-3 h-4 w-4" />
-              Add Friend
-            </Button>
-            <Button className="w-full justify-start" variant="outline" size="lg">
-              <Users className="mr-3 h-4 w-4" />
-              Import Friends
-            </Button>
-            <Button className="w-full justify-start" variant="outline" size="lg">
-              <Mail className="mr-3 h-4 w-4" />
-              Send Invitation
-            </Button>
-          </div>
-        </div>
-      </motion.div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-        {/* Liste des friends */}
-        <motion.div variants={itemVariants} className="lg:col-span-3">
+      {/* Friends list */}
+      <motion.div variants={itemVariants}>
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">
               All friends ({filteredFriends.length})
             </h2>
-            <div className="flex items-center gap-2">
-              <Button variant="ghost" size="sm">
-                <Star className="h-4 w-4 mr-2" />
-                Favorites ({filteredFriends.filter(c => c.favorite).length})
-              </Button>
-            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -457,9 +438,6 @@ export default function FriendsView() {
                     </div>
                   </div>
                   <div className="flex items-center space-x-2">
-                    {friend.favorite && (
-                      <Star className="h-4 w-4 text-yellow-500 fill-current" />
-                    )}
                     <Badge variant="outline" className="text-xs">
                       {friend.department}
                     </Badge>
@@ -505,76 +483,20 @@ export default function FriendsView() {
               ))
             )}
           </div>
-        </motion.div>
-
-        {/* Sidebar */}
-        <motion.div variants={itemVariants} className="lg:col-span-1 space-y-6">
-          {/* Quick Actions - Desktop only */}
-          <div className="hidden lg:block bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
-            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">
-              Quick Actions
-            </h3>
-            <div className="space-y-3">
-              <Button className="w-full justify-start" size="lg">
-                <Plus className="mr-3 h-4 w-4" />
-                Add Friend
-              </Button>
-              <Button className="w-full justify-start" variant="outline" size="lg">
-                <Users className="mr-3 h-4 w-4" />
-                Import Friends
-              </Button>
-              <Button className="w-full justify-start" variant="outline" size="lg">
-                <Mail className="mr-3 h-4 w-4" />
-                Send Invitation
-              </Button>
-            </div>
-          </div>
-
-          {/* Favorites */}
-          <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
-            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">
-              Favorites
-            </h3>
-            <div className="space-y-4">
-              {friends.filter(c => c.favorite).map((friend, index) => (
-                <motion.div
-                  key={friend.id}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                  className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors cursor-pointer"
-                >
-                  <div className="relative">
-                    <Avatar className="w-8 h-8">
-                      <AvatarImage src={friend.avatar} />
-                      <AvatarFallback className="text-xs">
-                        {friend.name.split(' ').map(n => n[0]).join('')}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className={`absolute -bottom-1 -right-1 w-3 h-3 ${getStatusColor(friend.status)} rounded-full border-2 border-white dark:border-slate-800`}></div>
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-900 dark:text-white">
-                      {friend.name}
-                    </p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
-                      {friend.role}
-                    </p>
-                  </div>
-                  <Star className="h-4 w-4 text-yellow-500 fill-current" />
-                </motion.div>
-              ))}
-            </div>
-          </div>
-
-        </motion.div>
-      </div>
+      </motion.div>
 
       {/* Profile Modal */}
-      <ProfileModal 
+      <ProfileModal
         friend={selectedFriend}
         isOpen={isProfileModalOpen}
         onClose={closeProfileModal}
+      />
+
+      {/* Add Friend Modal */}
+      <AddFriendModal
+        isOpen={isAddFriendModalOpen}
+        onClose={() => setIsAddFriendModalOpen(false)}
+        onSendInvite={handleSendInvite}
       />
     </motion.div>
   );
