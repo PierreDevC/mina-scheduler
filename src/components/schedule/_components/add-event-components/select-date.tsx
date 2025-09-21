@@ -47,7 +47,8 @@ export default function SelectDate({
   const [showEndCalendar, setShowEndCalendar] = useState(false);
   const [openTimeDropdown, setOpenTimeDropdown] = useState<'start' | 'end' | null>(null);
   const [isAllDay, setIsAllDay] = useState(false);
-  
+  const [userHasSelectedDate, setUserHasSelectedDate] = useState(false);
+
   // Only load initial data once, ignore subsequent prop changes to prevent interference with user edits
   const [hasInitialized, setHasInitialized] = useState(false);
   
@@ -108,17 +109,20 @@ export default function SelectDate({
   }, [startDate, endDate, setValue]);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4" onClick={(e) => e.stopPropagation()}>
       {/* Start Date - Always visible */}
-      <div className="space-y-2">
+      <div className="space-y-2" onClick={(e) => e.stopPropagation()}>
         <Label>Start Date</Label>
         <Button
+          type="button"
           variant="outline"
           className={cn(
             "w-full justify-start text-left font-normal",
             !startDate && "text-muted-foreground"
           )}
-          onClick={() => {
+          onClick={(e) => {
+            e.stopPropagation();
+            e.preventDefault();
             setShowStartCalendar(!showStartCalendar);
             if (!showStartCalendar) {
               setShowEndCalendar(false); // Close end calendar when opening start
@@ -136,6 +140,7 @@ export default function SelectDate({
               exit={{ opacity: 0, height: 0, y: -10 }}
               transition={{ duration: 0.2, ease: "easeInOut" }}
               className="overflow-hidden"
+              onClick={(e) => e.stopPropagation()}
             >
               <Calendar
                 mode="single"
@@ -143,14 +148,20 @@ export default function SelectDate({
                 onSelect={(date) => {
                   console.log("🗓️ Start date clicked:", date);
                   if (date && !isNaN(date.getTime())) {
-                    const newDate = new Date(date);
-                    newDate.setHours(startDate.getHours(), startDate.getMinutes(), 0, 0);
-                    if (!isNaN(newDate.getTime())) {
-                      setStartDate(newDate);
+                    const newStartDate = new Date(date);
+                    newStartDate.setHours(startDate.getHours(), startDate.getMinutes(), 0, 0);
+
+                    // Automatically set end date to same day + 1 hour
+                    const newEndDate = new Date(newStartDate);
+                    newEndDate.setHours(newStartDate.getHours() + 1, newStartDate.getMinutes(), 0, 0);
+
+                    if (!isNaN(newStartDate.getTime()) && !isNaN(newEndDate.getTime())) {
+                      setStartDate(newStartDate);
+                      setEndDate(newEndDate);
+                      setValue("startDate", newStartDate);
+                      setValue("endDate", newEndDate);
+                      setUserHasSelectedDate(true);
                       setShowStartCalendar(false);
-                      setTimeout(() => {
-                        setValue("startDate", newDate);
-                      }, 0);
                     }
                   }
                 }}
@@ -162,56 +173,28 @@ export default function SelectDate({
         </AnimatePresence>
       </div>
 
-      {/* All Day Checkbox */}
-      <div className="flex items-center space-x-2">
-        <Checkbox 
-          id="allDay" 
-          checked={isAllDay}
-          onCheckedChange={(checked) => {
-            const allDay = checked === true;
-            setIsAllDay(allDay);
-            setValue("isAllDay", allDay);
-            
-            if (allDay) {
-              // Set times to all day (00:00 to 23:59)
-              const startOfDay = new Date(startDate);
-              startOfDay.setHours(0, 0, 0, 0);
-              const endOfDay = new Date(startDate);
-              endOfDay.setHours(23, 59, 59, 999);
-              
-              setStartDate(startOfDay);
-              setEndDate(endOfDay);
-              setValue("startDate", startOfDay);
-              setValue("endDate", endOfDay);
-            }
-          }}
-        />
-        <Label 
-          htmlFor="allDay" 
-          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
-        >
-          All day
-        </Label>
-      </div>
-
-      {/* End Date - Only show if event spans multiple days */}
+      {/* End Date - Show when user has selected a date or event spans multiple days */}
       <AnimatePresence>
-        {spansMultipleDays && (
+        {(userHasSelectedDate || spansMultipleDays) && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.3 }}
             className="space-y-2"
+            onClick={(e) => e.stopPropagation()}
           >
             <Label>End Date</Label>
             <Button
+              type="button"
               variant="outline"
               className={cn(
                 "w-full justify-start text-left font-normal",
                 !endDate && "text-muted-foreground"
               )}
-              onClick={() => {
+              onClick={(e) => {
+                e.stopPropagation();
+                e.preventDefault();
                 setShowEndCalendar(!showEndCalendar);
                 if (!showEndCalendar) {
                   setShowStartCalendar(false); // Close start calendar when opening end
@@ -229,6 +212,7 @@ export default function SelectDate({
                   exit={{ opacity: 0, height: 0, y: -10 }}
                   transition={{ duration: 0.2, ease: "easeInOut" }}
                   className="overflow-hidden"
+                  onClick={(e) => e.stopPropagation()}
                 >
                   <Calendar
                     mode="single"
@@ -240,10 +224,8 @@ export default function SelectDate({
                         newDate.setHours(endDate.getHours(), endDate.getMinutes(), 0, 0);
                         if (!isNaN(newDate.getTime())) {
                           setEndDate(newDate);
+                          setValue("endDate", newDate);
                           setShowEndCalendar(false);
-                          setTimeout(() => {
-                            setValue("endDate", newDate);
-                          }, 0);
                         }
                       }
                     }}
@@ -257,6 +239,38 @@ export default function SelectDate({
         )}
       </AnimatePresence>
 
+      {/* All Day Checkbox */}
+      <div className="flex items-center space-x-2" onClick={(e) => e.stopPropagation()}>
+        <Checkbox
+          id="allDay"
+          checked={isAllDay}
+          onCheckedChange={(checked) => {
+            const allDay = checked === true;
+            setIsAllDay(allDay);
+            setValue("isAllDay", allDay);
+
+            if (allDay) {
+              // Set times to all day (00:00 to 23:59)
+              const startOfDay = new Date(startDate);
+              startOfDay.setHours(0, 0, 0, 0);
+              const endOfDay = new Date(startDate);
+              endOfDay.setHours(23, 59, 59, 999);
+
+              setStartDate(startOfDay);
+              setEndDate(endOfDay);
+              setValue("startDate", startOfDay);
+              setValue("endDate", endOfDay);
+            }
+          }}
+        />
+        <Label
+          htmlFor="allDay"
+          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+        >
+          All day
+        </Label>
+      </div>
+
       {/* Time Selection - Hidden when All Day is checked */}
       <AnimatePresence>
         {!isAllDay && (
@@ -267,7 +281,7 @@ export default function SelectDate({
             className="grid grid-cols-1 md:grid-cols-2 gap-4"
           >
         {/* Start Time with 15-minute intervals */}
-        <div className="space-y-2">
+        <div className="space-y-2" onClick={(e) => e.stopPropagation()}>
           <Label>Start Time</Label>
           <Select
             value={getTimeValue(startDate)}
@@ -304,7 +318,7 @@ export default function SelectDate({
         </div>
 
         {/* End Time with 15-minute intervals */}
-        <div className="space-y-2">
+        <div className="space-y-2" onClick={(e) => e.stopPropagation()}>
           <Label>End Time</Label>
           <Select
             value={getTimeValue(endDate)}
@@ -350,7 +364,7 @@ export default function SelectDate({
       </AnimatePresence>
 
       {/* Duration Display */}
-      <div className="text-sm text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 p-3 rounded-lg">
+      <div className="text-sm text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 p-3 rounded-lg" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between">
           <span>Duration:</span>
           <span className={cn(
@@ -407,7 +421,7 @@ export default function SelectDate({
         </div>
         {isAllDay ? (
           <div className="text-xs mt-1 text-green-600 dark:text-green-400">
-            🌅 All-day event
+            All-day event
           </div>
         ) : (
           <>

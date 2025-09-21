@@ -314,12 +314,12 @@ export default function DailyView({
                   <div
                     key={event.id}
                     className={clsx(
-                      "text-xs px-3 py-2 rounded text-white font-medium truncate cursor-pointer filter hover:brightness-[0.9] transition",
-                      event.variant === "primary" && "bg-blue-500",
-                      event.variant === "success" && "bg-green-500",
-                      event.variant === "warning" && "bg-yellow-500",
-                      event.variant === "danger" && "bg-red-500",
-                      !event.variant && "bg-blue-500"
+                      "text-xs px-3 py-2 rounded font-medium truncate cursor-pointer shadow-sm hover:shadow-md transition-shadow duration-200 border",
+                      event.variant === "primary" && "bg-blue-100 text-blue-800 border-blue-200",
+                      event.variant === "success" && "bg-green-100 text-green-800 border-green-200",
+                      event.variant === "warning" && "bg-yellow-100 text-yellow-800 border-yellow-200",
+                      event.variant === "danger" && "bg-red-100 text-red-800 border-red-200",
+                      !event.variant && "bg-blue-100 text-blue-800 border-blue-200"
                     )}
                     onClick={() => {
                       setOpen(
@@ -337,7 +337,7 @@ export default function DailyView({
                       );
                     }}
                   >
-                    🌅 {event.title}
+                   {event.title}
                   </div>
                 ))}
               </div>
@@ -419,7 +419,7 @@ export default function DailyView({
           {!stopDayEventSummary && allDayEvents.length > 0 && (
             <div className="all-day-events bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 border border-blue-200 dark:border-blue-800">
               <h3 className="text-sm font-semibold text-blue-700 dark:text-blue-300 mb-3 flex items-center gap-2">
-                🌅 All-day Events
+                 All-day Events
               </h3>
               <AnimatePresence initial={false}>
                 {allDayEvents.map((event, eventIndex) => (

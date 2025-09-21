@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
-import { Calendar, Clock, MapPin, Users, Plus, Filter, Search, XCircle, CheckCircle, X, RotateCcw, History, AlertCircle, Trash2 } from "lucide-react";
+import { Calendar, Clock, Users, Plus, Filter, Search, XCircle, CheckCircle, X, RotateCcw, History, AlertCircle, Trash2 } from "lucide-react";
 import { useModal } from "@/providers/modal-context";
 import AddEventModal from "@/components/schedule/_modals/add-event-modal";
 import CustomModal from "@/components/ui/custom-modal";
@@ -15,23 +15,48 @@ import { useEvents } from "@/providers/events-context";
 import { useDeleteEvent } from "@/hooks/useDeleteEvent";
 
 // Helper function to convert Event to events view format
-const convertEventToEventsView = (event: any) => ({
-  id: event.id, // Keep original string ID for proper deletion
-  originalId: event.id, // Store original ID for reference
-  title: event.title,
-  description: event.description || "",
-  date: event.startDate.toISOString().split('T')[0],
-  time: event.startDate.toTimeString().slice(0, 5),
-  duration: `${Math.round((event.endDate.getTime() - event.startDate.getTime()) / (1000 * 60))}min`,
-  location: "Office", // Default location
-  attendees: event.invitedPeople?.length || 1,
-  type: getEventTypeFromVariant(event.variant),
-  priority: getPriorityFromVariant(event.variant),
-  organizer: event.invitedPeople?.[0]?.name || "Unknown",
-  status: getStatusFromDate(event.startDate),
-  isRecurring: false,
-  recurringType: "none", // Default for non-recurring events
-});
+const convertEventToEventsView = (event: any) => {
+  // Format time in AM/PM format
+  const timeString = event.startDate.toLocaleTimeString('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true
+  });
+
+  // Calculate duration in hours and minutes
+  const durationMs = event.endDate.getTime() - event.startDate.getTime();
+  const totalMinutes = Math.round(durationMs / (1000 * 60));
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+
+  let durationString = '';
+  if (hours > 0) {
+    durationString += `${hours}h`;
+    if (minutes > 0) {
+      durationString += ` ${minutes}min`;
+    }
+  } else {
+    durationString = `${minutes}min`;
+  }
+
+  return {
+    id: event.id, // Keep original string ID for proper deletion
+    originalId: event.id, // Store original ID for reference
+    title: event.title,
+    description: event.description || "",
+    date: event.startDate.toISOString().split('T')[0],
+    time: timeString,
+    duration: durationString,
+    attendees: event.invitedPeople?.length || 1,
+    type: getEventTypeFromVariant(event.variant),
+    variant: event.variant, // Keep the original variant for color mapping
+    priority: getPriorityFromVariant(event.variant),
+    organizer: event.invitedPeople?.[0]?.name || "Unknown",
+    status: getStatusFromDate(event.startDate),
+    isRecurring: false,
+    recurringType: "none", // Default for non-recurring events
+  };
+};
 
 function getEventTypeFromVariant(variant?: string): string {
   switch (variant) {
@@ -113,6 +138,21 @@ const getEventTypeColor = (type: string) => {
       return "bg-red-500";
     default:
       return "bg-gray-500";
+  }
+};
+
+const getEventVariantColor = (variant?: string) => {
+  switch (variant) {
+    case "primary":
+      return "bg-blue-500";
+    case "danger":
+      return "bg-red-500";
+    case "success":
+      return "bg-green-500";
+    case "warning":
+      return "bg-yellow-500";
+    default:
+      return "bg-blue-500";
   }
 };
 
@@ -219,7 +259,6 @@ export default function EventsView({ onNavigateToCalendar }: EventsViewProps) {
     const matchesSearch = !searchTerm || (
       event.title.toLowerCase().includes(searchTerm) ||
       event.description.toLowerCase().includes(searchTerm) ||
-      event.location.toLowerCase().includes(searchTerm) ||
       event.organizer.toLowerCase().includes(searchTerm) ||
       event.type.toLowerCase().includes(searchTerm) ||
       event.priority.toLowerCase().includes(searchTerm)
@@ -458,9 +497,9 @@ export default function EventsView({ onNavigateToCalendar }: EventsViewProps) {
                 whileHover={{ scale: 1.01, y: -2 }}
                 className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow cursor-pointer"
               >
-                <div className="flex items-start justify-between mb-4">
+                <div className="flex items-start mb-4">
                   <div className="flex items-start space-x-4">
-                    <div className={`w-12 h-12 ${getEventTypeColor(event.type)} rounded-lg flex items-center justify-center flex-shrink-0`}>
+                    <div className={`w-12 h-12 ${getEventVariantColor(event.variant)} rounded-lg flex items-center justify-center flex-shrink-0`}>
                       <Calendar className="h-6 w-6 text-white" />
                     </div>
                     <div className="flex-1">
@@ -480,25 +519,14 @@ export default function EventsView({ onNavigateToCalendar }: EventsViewProps) {
                       </p>
                     </div>
                   </div>
-                  <div className="flex flex-col gap-2">
-                    {getEventTypeBadge(event.type)}
-                    {getPriorityBadge(event.priority)}
-                    {getStatusBadge(event.status)}
-                  </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                <div className="mb-4">
                   <div className="flex items-center space-x-2 text-gray-600 dark:text-gray-400">
                     <Calendar className="h-4 w-4" />
                     <span className="text-sm">{event.date}</span>
-                  </div>
-                  <div className="flex items-center space-x-2 text-gray-600 dark:text-gray-400">
-                    <Clock className="h-4 w-4" />
+                    <Clock className="h-4 w-4 ml-4" />
                     <span className="text-sm">{event.time} ({event.duration})</span>
-                  </div>
-                  <div className="flex items-center space-x-2 text-gray-600 dark:text-gray-400">
-                    <MapPin className="h-4 w-4" />
-                    <span className="text-sm">{event.location}</span>
                   </div>
                 </div>
 

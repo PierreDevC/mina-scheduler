@@ -268,12 +268,12 @@ export default function MonthView({
                         <div
                           key={event.id}
                           className={clsx(
-                            "text-xs px-1 py-0.5 mb-1 rounded text-white font-medium truncate cursor-pointer filter hover:brightness-[0.9] transition",
-                            event.variant === "primary" && "bg-blue-500",
-                            event.variant === "success" && "bg-green-500",
-                            event.variant === "warning" && "bg-yellow-500",
-                            event.variant === "danger" && "bg-red-500",
-                            !event.variant && "bg-blue-500"
+                            "text-xs px-1 py-0.5 mb-1 rounded font-medium truncate cursor-pointer shadow-sm hover:shadow-md transition-shadow duration-200 border",
+                            event.variant === "primary" && "bg-blue-100 text-blue-800 border-blue-200",
+                            event.variant === "success" && "bg-green-100 text-green-800 border-green-200",
+                            event.variant === "warning" && "bg-yellow-100 text-yellow-800 border-yellow-200",
+                            event.variant === "danger" && "bg-red-100 text-red-800 border-red-200",
+                            !event.variant && "bg-blue-100 text-blue-800 border-blue-200"
                           )}
                           onClick={(e) => {
                             e.stopPropagation();
@@ -292,7 +292,7 @@ export default function MonthView({
                             );
                           }}
                         >
-                          🌅 {event.title}
+                           {event.title}
                         </div>
                       ))}
                     </div>

@@ -210,7 +210,7 @@ export function checkPersonAvailability(
     return {
       person,
       status: "unknown",
-      conflictReason: "Événements multi-jours non supportés actuellement"
+      conflictReason: "Multi-day events are not supported currently"
     };
   }
 
@@ -221,7 +221,7 @@ export function checkPersonAvailability(
     return {
       person,
       status: "busy",
-      conflictReason: "Pas disponible ce jour-là"
+      conflictReason: "Not available that day"
     };
   }
 
@@ -259,14 +259,14 @@ export function checkPersonAvailability(
     return {
       person,
       status: "partial",
-      conflictReason: "Disponible partiellement pendant ce créneau",
+      conflictReason: "Partially available during this slot",
       availableTimeSlots: overlappingSlots
     };
   } else {
     return {
       person,
       status: "busy",
-      conflictReason: "Pas disponible à cette heure"
+      conflictReason: "Not available at this time"
     };
   }
 }

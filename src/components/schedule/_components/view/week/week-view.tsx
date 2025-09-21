@@ -533,12 +533,12 @@ export default function WeeklyView({
                           <div className="flex flex-col items-center space-y-1">
                             <div
                               className={clsx(
-                                "text-xs px-2 py-1 rounded text-white font-medium truncate w-full text-center cursor-pointer filter hover:brightness-[0.9] transition",
-                                allDayEvents[0].variant === "primary" && "bg-blue-500",
-                                allDayEvents[0].variant === "success" && "bg-green-500",
-                                allDayEvents[0].variant === "warning" && "bg-yellow-500",
-                                allDayEvents[0].variant === "danger" && "bg-red-500",
-                                !allDayEvents[0].variant && "bg-blue-500"
+                                "text-xs px-2 py-1 rounded font-medium truncate w-full text-center cursor-pointer shadow-sm hover:shadow-md transition-shadow duration-200 border",
+                                allDayEvents[0].variant === "primary" && "bg-blue-100 text-blue-800 border-blue-200",
+                                allDayEvents[0].variant === "success" && "bg-green-100 text-green-800 border-green-200",
+                                allDayEvents[0].variant === "warning" && "bg-yellow-100 text-yellow-800 border-yellow-200",
+                                allDayEvents[0].variant === "danger" && "bg-red-100 text-red-800 border-red-200",
+                                !allDayEvents[0].variant && "bg-blue-100 text-blue-800 border-blue-200"
                               )}
                               onClick={(e) => {
                                 e.stopPropagation();
@@ -558,7 +558,7 @@ export default function WeeklyView({
                                 );
                               }}
                             >
-                              🌅 {allDayEvents[0].title}
+                               {allDayEvents[0].title}
                             </div>
                             
                             {/* +X more indicator below the event */}
