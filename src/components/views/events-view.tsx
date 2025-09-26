@@ -346,7 +346,7 @@ export default function EventsView({ onNavigateToCalendar }: EventsViewProps) {
     if (onNavigateToCalendar) {
       onNavigateToCalendar();
     } else {
-      router.push("/app");
+      router.push("/dashboard");
     }
   };
 

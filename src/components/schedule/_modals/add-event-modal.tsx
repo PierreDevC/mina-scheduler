@@ -239,115 +239,124 @@ export default function AddEventModal({
         <CustomAddEventModal register={register} errors={errors} />
       ) : (
         <>
-          <div className="grid gap-2">
-            <Label htmlFor="title">Event Name</Label>
-            <Input
-              id="title"
-              {...register("title")}
-              placeholder="Enter event name"
-              className={cn(errors.title && "border-red-500")}
-            />
-            {errors.title && (
-              <p className="text-sm text-red-500">
-                {errors.title.message as string}
-              </p>
-            )}
-          </div>
+          {/* Desktop 2-column layout, mobile single column */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Left Column - Basic Event Info */}
+            <div className="space-y-4">
+              <div className="grid gap-2">
+                <Label htmlFor="title">Event Name</Label>
+                <Input
+                  id="title"
+                  {...register("title")}
+                  placeholder="Enter event name"
+                  className={cn(errors.title && "border-red-500")}
+                />
+                {errors.title && (
+                  <p className="text-sm text-red-500">
+                    {errors.title.message as string}
+                  </p>
+                )}
+              </div>
 
-          <div className="grid gap-2">
-            <Label htmlFor="description">Description</Label>
-            <Textarea
-              id="description"
-              {...register("description")}
-              placeholder="Enter event description"
-              className="resize-none"
-              style={{ 
-                minHeight: '80px',
-                maxHeight: '200px',
-                overflow: 'auto'
-              }}
-              onInput={(e) => {
-                const target = e.target as HTMLTextAreaElement;
-                target.style.height = 'auto';
-                target.style.height = Math.min(target.scrollHeight, 200) + 'px';
-              }}
-            />
-          </div>
+              <div className="grid gap-2">
+                <Label htmlFor="description">Description</Label>
+                <Textarea
+                  id="description"
+                  {...register("description")}
+                  placeholder="Enter event description"
+                  className="resize-none"
+                  style={{
+                    minHeight: '80px',
+                    maxHeight: '200px',
+                    overflow: 'auto'
+                  }}
+                  onInput={(e) => {
+                    const target = e.target as HTMLTextAreaElement;
+                    target.style.height = 'auto';
+                    target.style.height = Math.min(target.scrollHeight, 200) + 'px';
+                  }}
+                />
+              </div>
 
-          <SelectDate
-            data={{
-              startDate: modalData?.startDate || new Date(),
-              endDate: modalData?.endDate || new Date(),
-            }}
-            setValue={setValue}
-          />
+              <SelectDate
+                data={{
+                  startDate: modalData?.startDate || new Date(),
+                  endDate: modalData?.endDate || new Date(),
+                }}
+                setValue={setValue}
+              />
 
-          <PeopleSelectorWithAvailability
-            selectedPeople={selectedPeople}
-            onPeopleChange={(people) => {
-              setSelectedPeople(people);
-              setValue("invitedPeople", people);
-            }}
-            eventStartDate={currentStartDate}
-            eventEndDate={currentEndDate}
-          />
-
-          {/* Show selected attendees */}
-          {selectedPeople.length > 0 && (
-            <div className="grid gap-2">
-              <Label>Event Attendees ({selectedPeople.length})</Label>
-              <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg">
-                <div className="flex flex-wrap gap-2">
-                  {selectedPeople.map((person) => (
-                    <div key={person.id} className="flex items-center gap-2 bg-white dark:bg-gray-700 px-3 py-1 rounded-full border">
-                      <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-white text-xs font-medium">
-                        {person.name.split(" ").map(n => n[0]).join("")}
-                      </div>
-                      <span className="text-sm font-medium">{person.name}</span>
-                      <span className="text-xs text-gray-500">({person.email})</span>
-                    </div>
-                  ))}
-                </div>
+              <div className="grid gap-2">
+                <Label>Color</Label>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant={getButtonVariant(selectedColor)}
+                      className="w-fit my-2"
+                    >
+                      {
+                        colorOptions.find((color) => color.key === selectedColor)
+                          ?.name
+                      }
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
+                    {colorOptions.map((color) => (
+                      <DropdownMenuItem
+                        key={color.key}
+                        onClick={() => {
+                          setSelectedColor(color.key);
+                          setValue("variant", getEventStatus(color.key));
+                        }}
+                      >
+                        <div className="flex items-center">
+                          <div
+                            style={{
+                              backgroundColor: `var(--${color.key})`,
+                            }}
+                            className={`w-4 h-4 rounded-full mr-2`}
+                          />
+                          {color.name}
+                        </div>
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             </div>
-          )}
 
-          <div className="grid gap-2">
-            <Label>Color</Label>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant={getButtonVariant(selectedColor)}
-                  className="w-fit my-2"
-                >
-                  {
-                    colorOptions.find((color) => color.key === selectedColor)
-                      ?.name
-                  }
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                {colorOptions.map((color) => (
-                  <DropdownMenuItem
-                    key={color.key}
-                    onClick={() => {
-                      setSelectedColor(color.key);
-                      setValue("variant", getEventStatus(color.key));
-                    }}
-                  >
-                    <div className="flex items-center">
-                      <div
-                        style={{
-                          backgroundColor: `var(--${color.key})`,
-                        }}
-                        className={`w-4 h-4 rounded-full mr-2`}
-                      />
-                      {color.name}
+            {/* Right Column - Invites & Availability */}
+            <div className="space-y-4">
+              <PeopleSelectorWithAvailability
+                selectedPeople={selectedPeople}
+                onPeopleChange={(people) => {
+                  setSelectedPeople(people);
+                  setValue("invitedPeople", people);
+                }}
+                eventStartDate={currentStartDate}
+                eventEndDate={currentEndDate}
+              />
+
+              {/* Show selected attendees */}
+              {selectedPeople.length > 0 && (
+                <div className="grid gap-2">
+                  <Label>Event Attendees ({selectedPeople.length})</Label>
+                  <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg">
+                    <div className="flex flex-wrap gap-2">
+                      {selectedPeople.map((person) => (
+                        <div key={person.id} className="flex items-center gap-2 bg-white dark:bg-gray-700 px-3 py-1 rounded-full border">
+                          <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-white text-xs font-medium">
+                            {person.name.split(" ").map(n => n[0]).join("")}
+                          </div>
+                          <span className="text-sm font-medium">{person.name}</span>
+                          <span className="text-xs text-gray-500">({person.email})</span>
+                        </div>
+                      ))}
                     </div>
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="flex justify-between items-center mt-4 pt-2 border-t">

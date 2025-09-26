@@ -139,7 +139,7 @@ export default function CustomModal({
                 className={clsx(
                   "relative flex flex-col outline-none rounded-xl shadow-xl",
                   "w-full max-w-[calc(100vw-1rem)] max-h-[calc(100vh-2rem)]",
-                  "sm:max-w-2xl md:max-h-[85vh]",
+                  "sm:max-w-2xl md:max-w-4xl lg:max-w-5xl md:max-h-[85vh]",
                   contentClassName
                 )}
                 onClick={(e) => e.stopPropagation()}

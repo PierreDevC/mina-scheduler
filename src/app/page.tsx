@@ -44,7 +44,7 @@ export default function Home() {
               transition={{ duration: 0.5, delay: 0.2 }}
               viewport={{ once: true }}
             >
-              <Link href="/app">
+              <Link href="/dashboard">
                 <Button 
                   size="lg" 
                   className="bg-blue-600 hover:bg-blue-700"
