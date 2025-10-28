@@ -1,7 +1,7 @@
 "use client";
 
 import { EventFormData } from "@/types";
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useRef } from "react";
 import { UseFormSetValue } from "react-hook-form";
 import { format, setHours, setMinutes, isBefore, addHours, isSameDay, addDays } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
@@ -49,20 +49,47 @@ export default function SelectDate({
   const [isAllDay, setIsAllDay] = useState(false);
   const [userHasSelectedDate, setUserHasSelectedDate] = useState(false);
 
-  // Only load initial data once, ignore subsequent prop changes to prevent interference with user edits
-  const [hasInitialized, setHasInitialized] = useState(false);
-  
+  // Track previous prop values to detect external changes
+  const prevStartDateRef = useRef<Date | null>(null);
+  const prevEndDateRef = useRef<Date | null>(null);
+
+  // Update dates when props change (e.g., from time slot suggestions)
+  // Only update if the change is significant (not just the same timestamp)
   useEffect(() => {
-    if (!hasInitialized && data?.startDate instanceof Date && !isNaN(data.startDate.getTime())) {
-      console.log("📅 SelectDate: Initial load of startDate:", data.startDate);
-      setStartDate(data.startDate);
-      setHasInitialized(true);
+    if (data?.startDate instanceof Date && !isNaN(data.startDate.getTime())) {
+      const prevTime = prevStartDateRef.current?.getTime();
+      const newTime = data.startDate.getTime();
+      const currentTime = startDate.getTime();
+
+      // Only update if:
+      // 1. The new prop value is different from current state
+      // 2. The new prop value is different from the previous prop value (external change)
+      if (newTime !== currentTime && newTime !== prevTime) {
+        console.log("📅 SelectDate: Updating startDate from external change:", data.startDate);
+        setStartDate(data.startDate);
+        setValue("startDate", data.startDate);
+        prevStartDateRef.current = data.startDate;
+      }
     }
-    if (!hasInitialized && data?.endDate instanceof Date && !isNaN(data.endDate.getTime())) {
-      console.log("📅 SelectDate: Initial load of endDate:", data.endDate);
-      setEndDate(data.endDate);
+  }, [data?.startDate]);
+
+  useEffect(() => {
+    if (data?.endDate instanceof Date && !isNaN(data.endDate.getTime())) {
+      const prevTime = prevEndDateRef.current?.getTime();
+      const newTime = data.endDate.getTime();
+      const currentTime = endDate.getTime();
+
+      // Only update if:
+      // 1. The new prop value is different from current state
+      // 2. The new prop value is different from the previous prop value (external change)
+      if (newTime !== currentTime && newTime !== prevTime) {
+        console.log("📅 SelectDate: Updating endDate from external change:", data.endDate);
+        setEndDate(data.endDate);
+        setValue("endDate", data.endDate);
+        prevEndDateRef.current = data.endDate;
+      }
     }
-  }, [data?.startDate, data?.endDate, hasInitialized]);
+  }, [data?.endDate]);
   
   // Generate 15-minute intervals from 12:00 AM to 11:45 PM
   const timeOptions = useMemo(() => {
@@ -427,12 +454,12 @@ export default function SelectDate({
           <>
             {spansMultipleDays && endDate > startDate && (
               <div className="text-xs mt-1 text-blue-600 dark:text-blue-400">
-                ℹ️ This event spans multiple days
+                 This event spans multiple days
               </div>
             )}
             {endDate <= startDate && (
               <div className="text-xs mt-1 text-red-500 dark:text-red-400">
-                ⚠️ Please ensure the end time is after the start time
+               Please ensure the end time is after the start time
               </div>
             )}
           </>

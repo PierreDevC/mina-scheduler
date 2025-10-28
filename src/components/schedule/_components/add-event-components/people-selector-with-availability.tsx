@@ -25,10 +25,11 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Check, UserPlus, X, Clock, Users, AlertCircle, CheckCircle, MinusCircle } from "lucide-react";
+import { Check, UserPlus, X, Clock, Users, AlertCircle, CheckCircle, MinusCircle, UsersRound } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Person } from "@/types/index";
+import { Person, Group } from "@/types/index";
 import { mockFriends } from "@/data/mockFriends";
+import { mockGroups, getAllMembersFromGroups } from "@/data/mockGroups";
 import { 
   checkMultiplePeopleAvailability, 
   getAvailabilitySummary,
@@ -40,26 +41,52 @@ import {
 interface PeopleSelectorWithAvailabilityProps {
   selectedPeople: Person[];
   onPeopleChange: (people: Person[]) => void;
+  selectedGroups?: Group[];
+  onGroupsChange?: (groups: Group[]) => void;
   eventStartDate?: Date;
   eventEndDate?: Date;
+  onDateChange?: (startDate: Date, endDate: Date) => void;
   className?: string;
 }
 
 export default function PeopleSelectorWithAvailability({
   selectedPeople,
   onPeopleChange,
+  selectedGroups = [],
+  onGroupsChange,
   eventStartDate,
   eventEndDate,
+  onDateChange,
   className,
 }: PeopleSelectorWithAvailabilityProps) {
   const [searchValue, setSearchValue] = useState("");
   const [filteredPeople, setFilteredPeople] = useState<Person[]>(mockFriends);
+  const [filteredGroups, setFilteredGroups] = useState<Group[]>(mockGroups);
   const [showAvailabilityDetails, setShowAvailabilityDetails] = useState(false);
+  const [isCalculatingSuggestions, setIsCalculatingSuggestions] = useState(false);
 
+
+  // Get all people including those from groups (de-duplicated)
+  const allPeople = useMemo(() => {
+    const peopleMap = new Map<string, Person>();
+
+    // Add individually selected people
+    selectedPeople.forEach(person => {
+      peopleMap.set(person.id, person);
+    });
+
+    // Add people from selected groups
+    const groupMembers = getAllMembersFromGroups(selectedGroups);
+    groupMembers.forEach(person => {
+      peopleMap.set(person.id, person);
+    });
+
+    return Array.from(peopleMap.values());
+  }, [selectedPeople, selectedGroups]);
 
   // Calculate availability when event times or selected people change
   const availabilityData = useMemo(() => {
-    if (!eventStartDate || !eventEndDate || selectedPeople.length === 0 || 
+    if (!eventStartDate || !eventEndDate || allPeople.length === 0 ||
         !(eventStartDate instanceof Date) || !(eventEndDate instanceof Date) ||
         isNaN(eventStartDate.getTime()) || isNaN(eventEndDate.getTime())) {
       return null;
@@ -71,9 +98,9 @@ export default function PeopleSelectorWithAvailability({
     };
 
     try {
-      const statuses = checkMultiplePeopleAvailability(selectedPeople, eventTime);
+      const statuses = checkMultiplePeopleAvailability(allPeople, eventTime);
       const summary = getAvailabilitySummary(statuses);
-      
+
       return {
         statuses,
         summary,
@@ -83,7 +110,7 @@ export default function PeopleSelectorWithAvailability({
       console.warn("Error calculating availability:", error);
       return null;
     }
-  }, [selectedPeople, eventStartDate, eventEndDate]);
+  }, [allPeople, eventStartDate, eventEndDate]);
 
   // Calculate availability for all people when browsing
   const allPeopleAvailability = useMemo(() => {
@@ -114,36 +141,62 @@ export default function PeopleSelectorWithAvailability({
     return availabilityMap;
   }, [filteredPeople, eventStartDate, eventEndDate]);
 
-  // Time suggestions when selecting people
+  // Time suggestions with debouncing and loading state
   const timeSuggestions = useMemo(() => {
-    if (!eventStartDate || selectedPeople.length === 0 || 
+    if (!eventStartDate || allPeople.length === 0 ||
         !(eventStartDate instanceof Date) || isNaN(eventStartDate.getTime())) {
+      setIsCalculatingSuggestions(false);
       return [];
     }
-    
+
+    setIsCalculatingSuggestions(true);
+
+    // Simulate calculation time (small delay for UX feedback)
+    const timer = setTimeout(() => {
+      setIsCalculatingSuggestions(false);
+    }, 300);
+
     try {
-      return suggestBestTimes(selectedPeople, eventStartDate, 60);
+      const suggestions = suggestBestTimes(allPeople, eventStartDate, 60);
+      return suggestions;
     } catch (error) {
       console.warn("Error calculating time suggestions:", error);
+      setIsCalculatingSuggestions(false);
       return [];
+    } finally {
+      // The timer cleanup happens in useEffect
     }
-  }, [selectedPeople, eventStartDate]);
+  }, [allPeople, eventStartDate]);
 
-  // Filter people based on search
+  // Clean up calculation state
   useEffect(() => {
-    let filtered = mockFriends;
+    return () => {
+      setIsCalculatingSuggestions(false);
+    };
+  }, []);
+
+  // Filter people and groups based on search
+  useEffect(() => {
+    let filteredP = mockFriends;
+    let filteredG = mockGroups;
 
     // Filter by search term
     if (searchValue) {
       const lowercaseSearch = searchValue.toLowerCase();
-      filtered = filtered.filter(
+      filteredP = filteredP.filter(
         person =>
           person.name.toLowerCase().includes(lowercaseSearch) ||
           person.email.toLowerCase().includes(lowercaseSearch)
       );
+      filteredG = filteredG.filter(
+        group =>
+          group.name.toLowerCase().includes(lowercaseSearch) ||
+          group.description.toLowerCase().includes(lowercaseSearch)
+      );
     }
 
-    setFilteredPeople(filtered);
+    setFilteredPeople(filteredP);
+    setFilteredGroups(filteredG);
   }, [searchValue]);
 
   const handlePersonSelect = (person: Person) => {
@@ -162,8 +215,31 @@ export default function PeopleSelectorWithAvailability({
     onPeopleChange(selectedPeople.filter(p => p.id !== personId));
   };
 
+  const handleGroupSelect = (group: Group) => {
+    if (!onGroupsChange) return;
+
+    const isSelected = selectedGroups.some(g => g.id === group.id);
+
+    if (isSelected) {
+      // Remove group
+      onGroupsChange(selectedGroups.filter(g => g.id !== group.id));
+    } else {
+      // Add group
+      onGroupsChange([...selectedGroups, group]);
+    }
+  };
+
+  const handleGroupRemove = (groupId: string) => {
+    if (!onGroupsChange) return;
+    onGroupsChange(selectedGroups.filter(g => g.id !== groupId));
+  };
+
   const isPersonSelected = (personId: string) => {
     return selectedPeople.some(p => p.id === personId);
+  };
+
+  const isGroupSelected = (groupId: string) => {
+    return selectedGroups.some(g => g.id === groupId);
   };
 
   const getAvailabilityIcon = (status: string) => {
@@ -195,151 +271,9 @@ export default function PeopleSelectorWithAvailability({
   return (
     <TooltipProvider>
       <div className={cn("grid gap-4", className)}>
-        <Label>Invite People</Label>
-        
-        {/* Selected People Display with Availability */}
-        {selectedPeople.length > 0 && (
-          <div className="space-y-3">
-            <div className="flex flex-wrap gap-2 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-              {selectedPeople.map((person) => {
-                const availability = availabilityData?.statuses.find(s => s.person.id === person.id);
-                return (
-                  <Tooltip key={person.id}>
-                    <TooltipTrigger asChild>
-                      <Badge
-                        variant="secondary"
-                        className={cn(
-                          "flex items-center gap-2 py-1 px-2",
-                          availability && getAvailabilityColor(availability.status)
-                        )}
-                      >
-                        <Avatar className="w-5 h-5">
-                          <AvatarImage src={person.avatar} alt={person.name} />
-                          <AvatarFallback className="text-xs">
-                            {person.name.split(" ").map(n => n[0]).join("")}
-                          </AvatarFallback>
-                        </Avatar>
-                        <span className="text-sm">{person.name}</span>
-                        {availability && getAvailabilityIcon(availability.status)}
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          className="h-4 w-4 p-0 hover:bg-gray-200 dark:hover:bg-gray-600"
-                          onClick={() => handlePersonRemove(person.id)}
-                        >
-                          <X className="h-3 w-3" />
-                        </Button>
-                      </Badge>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      {availability ? (
-                        <div>
-                          <p className="font-medium">{person.name}</p>
-                          <p className="text-sm">
-                            {availability.status === "available" && "✅ Available"}
-                            {availability.status === "partial" && "⚠️ Partially available"}
-                            {availability.status === "busy" && "❌ Busy"}
-                            {availability.status === "unknown" && "❓ Availability unknown"}
-                          </p>
-                          {availability.conflictReason && (
-                            <p className="text-xs text-gray-600">{availability.conflictReason}</p>
-                          )}
-                        </div>
-                      ) : (
-                        <p>Select a time to see availability</p>
-                      )}
-                    </TooltipContent>
-                  </Tooltip>
-                );
-              })}
-            </div>
+        <Label>Invite People and/or Groups</Label>
 
-            {/* Availability Summary */}
-            {availabilityData && (
-              <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
-                <div className="flex items-center justify-between mb-3">
-                  <h4 className="font-medium text-gray-900 dark:text-white">
-                    Availability Summary
-                  </h4>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setShowAvailabilityDetails(!showAvailabilityDetails)}
-                  >
-                    {showAvailabilityDetails ? "Hide" : "Show details"}
-                  </Button>
-                </div>
-                
-                <div className="grid grid-cols-4 gap-4 text-center">
-                  <div className="flex flex-col">
-                    <span className="text-lg font-semibold text-green-600">
-                      {availabilityData.summary.available}
-                    </span>
-                    <span className="text-xs text-gray-600">Available</span>
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="text-lg font-semibold text-yellow-600">
-                      {availabilityData.summary.partial}
-                    </span>
-                    <span className="text-xs text-gray-600">Partial</span>
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="text-lg font-semibold text-red-600">
-                      {availabilityData.summary.busy}
-                    </span>
-                    <span className="text-xs text-gray-600">Busy</span>
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="text-lg font-semibold text-gray-600">
-                      {availabilityData.summary.total}
-                    </span>
-                    <span className="text-xs text-gray-600">Total</span>
-                  </div>
-                </div>
-
-                {/* Time Suggestions */}
-                {timeSuggestions.length > 0 && (
-                  <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-600">
-                    <h5 className="text-sm font-medium text-gray-900 dark:text-white mb-2">
-                      💡 Suggested time slots (more availability)
-                    </h5>
-                    <div className="flex flex-wrap gap-2">
-                      {timeSuggestions.slice(0, 4).map((suggestion, index) => (
-                        <Badge key={index} variant="outline" className="text-xs">
-                          {suggestion.time} ({suggestion.availableCount}/{selectedPeople.length} available)
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Detailed availability */}
-                {showAvailabilityDetails && (
-                  <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-600 space-y-2">
-                    {availabilityData.statuses.map((status) => (
-                      <div key={status.person.id} className="flex items-center justify-between text-sm">
-                        <span>{status.person.name}</span>
-                        <div className="flex items-center gap-2">
-                          {getAvailabilityIcon(status.status)}
-                          <span className={cn("text-xs", getAvailabilityColor(status.status).split(" ")[0])}>
-                            {status.status === "available" && "Available"}
-                            {status.status === "partial" && "Partial"}
-                            {status.status === "busy" && "Busy"}
-                            {status.status === "unknown" && "Unknown"}
-                          </span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Search Friends */}
+        {/* Search Friends - Always at top */}
         <div className="space-y-3">
           <div className="relative">
             <Input
@@ -356,15 +290,90 @@ export default function PeopleSelectorWithAvailability({
           {/* Search Results */}
           {searchValue && (
             <div className="max-h-64 overflow-y-auto border border-gray-200 dark:border-gray-700 rounded-lg">
-              {filteredPeople.length === 0 ? (
+              {filteredPeople.length === 0 && filteredGroups.length === 0 ? (
                 <div className="p-4 text-center text-gray-500 dark:text-gray-400">
-                  No friends found matching "{searchValue}"
+                  No friends or groups found matching "{searchValue}"
                 </div>
               ) : (
                 <div className="p-2">
                   <div className="text-xs font-medium text-gray-600 dark:text-gray-400 px-2 py-1 mb-2">
-                    {filteredPeople.length} friend{filteredPeople.length !== 1 ? 's' : ''} found
+                    {filteredPeople.length} friend{filteredPeople.length !== 1 ? 's' : ''} and {filteredGroups.length} group{filteredGroups.length !== 1 ? 's' : ''} found
                   </div>
+
+                  {/* Groups Results */}
+                  {filteredGroups.length > 0 && (
+                    <div className="mb-3">
+                      <div className="text-xs font-semibold text-blue-600 dark:text-blue-400 px-2 py-1 mb-1">
+                        Groups
+                      </div>
+                      {filteredGroups.map((group) => {
+                        const isSelected = isGroupSelected(group.id);
+                        return (
+                          <div
+                            key={group.id}
+                            className={cn(
+                              "flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors",
+                              "hover:bg-gray-50 dark:hover:bg-gray-800",
+                              isSelected && "bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700"
+                            )}
+                            onClick={() => handleGroupSelect(group)}
+                          >
+                            <div className={`w-10 h-10 ${group.color} rounded-lg flex items-center justify-center`}>
+                              <UsersRound className="h-5 w-5 text-white" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="font-medium text-sm flex items-center gap-2">
+                                {group.name}
+                                {isSelected && (
+                                  <Badge variant="secondary" className="text-xs">
+                                    Added
+                                  </Badge>
+                                )}
+                              </div>
+                              <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                                {group.members.length} member{group.members.length !== 1 ? 's' : ''}
+                              </div>
+                              <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                                {group.description}
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              {isSelected ? (
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleGroupRemove(group.id);
+                                  }}
+                                >
+                                  <X className="h-4 w-4" />
+                                </Button>
+                              ) : (
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-8 w-8 p-0 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                                >
+                                  <UserPlus className="h-4 w-4" />
+                                </Button>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  {/* People Results */}
+                  {filteredPeople.length > 0 && (
+                    <div>
+                      <div className="text-xs font-semibold text-green-600 dark:text-green-400 px-2 py-1 mb-1">
+                        Friends
+                      </div>
                   {filteredPeople.map((person) => {
                     const availability = allPeopleAvailability.get(person.id);
                     const isSelected = isPersonSelected(person.id);
@@ -436,6 +445,8 @@ export default function PeopleSelectorWithAvailability({
                       </div>
                     );
                   })}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -443,17 +454,262 @@ export default function PeopleSelectorWithAvailability({
           
           {!searchValue && (
             <div className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">
-              Start typing to search for friends to invite
+              Start typing to search for friends or groups to invite
             </div>
           )}
         </div>
 
+        {/* Selected People and Groups Display with Availability */}
+        {(selectedPeople.length > 0 || selectedGroups.length > 0) && (
+          <div className="space-y-3">
+            <div className="flex flex-wrap gap-2 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+              {/* Selected Groups */}
+              {selectedGroups.map((group) => (
+                <Badge
+                  key={group.id}
+                  variant="secondary"
+                  className="flex items-center gap-2 py-1 px-2 bg-blue-100 dark:bg-blue-900 border-blue-300 dark:border-blue-700"
+                >
+                  <UsersRound className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                  <span className="text-sm font-medium">{group.name}</span>
+                  <span className="text-xs text-gray-600 dark:text-gray-400">
+                    ({group.members.length})
+                  </span>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="h-4 w-4 p-0 hover:bg-gray-200 dark:hover:bg-gray-600"
+                    onClick={() => handleGroupRemove(group.id)}
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                </Badge>
+              ))}
+
+              {/* Selected People */}
+              {selectedPeople.map((person) => {
+                const availability = availabilityData?.statuses.find(s => s.person.id === person.id);
+                return (
+                  <Tooltip key={person.id}>
+                    <TooltipTrigger asChild>
+                      <Badge
+                        variant="secondary"
+                        className={cn(
+                          "flex items-center gap-2 py-1 px-2",
+                          availability && getAvailabilityColor(availability.status)
+                        )}
+                      >
+                        <Avatar className="w-5 h-5">
+                          <AvatarImage src={person.avatar} alt={person.name} />
+                          <AvatarFallback className="text-xs">
+                            {person.name.split(" ").map(n => n[0]).join("")}
+                          </AvatarFallback>
+                        </Avatar>
+                        <span className="text-sm">{person.name}</span>
+                        {availability && getAvailabilityIcon(availability.status)}
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="h-4 w-4 p-0 hover:bg-gray-200 dark:hover:bg-gray-600"
+                          onClick={() => handlePersonRemove(person.id)}
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
+                      </Badge>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      {availability ? (
+                        <div>
+                          <p className="font-medium">{person.name}</p>
+                          <p className="text-sm">
+                            {availability.status === "available" && "✅ Available"}
+                            {availability.status === "partial" && "⚠️ Partially available"}
+                            {availability.status === "busy" && "❌ Busy"}
+                            {availability.status === "unknown" && "❓ Availability unknown"}
+                          </p>
+                          {availability.conflictReason && (
+                            <p className="text-xs text-gray-600">{availability.conflictReason}</p>
+                          )}
+                        </div>
+                      ) : (
+                        <p>Select a time to see availability</p>
+                      )}
+                    </TooltipContent>
+                  </Tooltip>
+                );
+              })}
+            </div>
+
+            {/* Availability Summary */}
+            {availabilityData && (
+              <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="font-medium text-gray-900 dark:text-white">
+                    Availability Summary
+                  </h4>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowAvailabilityDetails(!showAvailabilityDetails)}
+                  >
+                    {showAvailabilityDetails ? "Hide" : "Show details"}
+                  </Button>
+                </div>
+
+                <div className="grid grid-cols-4 gap-4 text-center">
+                  <div className="flex flex-col">
+                    <span className="text-lg font-semibold text-green-600">
+                      {availabilityData.summary.available}
+                    </span>
+                    <span className="text-xs text-gray-600">Available</span>
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-lg font-semibold text-yellow-600">
+                      {availabilityData.summary.partial}
+                    </span>
+                    <span className="text-xs text-gray-600">Partial</span>
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-lg font-semibold text-red-600">
+                      {availabilityData.summary.busy}
+                    </span>
+                    <span className="text-xs text-gray-600">Busy</span>
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-lg font-semibold text-gray-600">
+                      {availabilityData.summary.total}
+                    </span>
+                    <span className="text-xs text-gray-600">Total</span>
+                  </div>
+                </div>
+
+                {/* Time Suggestions */}
+                <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-600">
+                  <h5 className="text-sm font-medium text-gray-900 dark:text-white mb-3">
+                  ✨ Suggested time slots
+                  </h5>
+
+                  {isCalculatingSuggestions ? (
+                    <div className="flex items-center justify-center py-6">
+                      <div className="flex flex-col items-center gap-2">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                        <span className="text-xs text-gray-500 dark:text-gray-400">
+                          Finding optimal times...
+                        </span>
+                      </div>
+                    </div>
+                  ) : timeSuggestions.length > 0 ? (
+                    <div className="space-y-2">
+                      {timeSuggestions.map((suggestion, index) => {
+                        // Calculate current event duration in milliseconds
+                        const currentDuration = eventEndDate && eventStartDate
+                          ? eventEndDate.getTime() - eventStartDate.getTime()
+                          : 60 * 60 * 1000; // Default to 1 hour if not set
+
+                        return (
+                        <div
+                          key={index}
+                          onClick={() => {
+                            if (onDateChange) {
+                              const endDate = new Date(suggestion.date.getTime() + currentDuration);
+                              onDateChange(suggestion.date, endDate);
+                            }
+                          }}
+                          className={cn(
+                            "p-3 rounded-lg border cursor-pointer transition-all",
+                            "hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20",
+                            "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-600"
+                          )}
+                        >
+                          <div className="flex items-center justify-between">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-1">
+                                <span className="font-semibold text-sm text-gray-900 dark:text-white">
+                                  {suggestion.dayName}, {suggestion.date.toLocaleDateString()} at {suggestion.time}
+                                </span>
+                                {suggestion.daysFromTarget === 0 && (
+                                  <Badge variant="default" className="text-xs bg-blue-600">
+                                    Today
+                                  </Badge>
+                                )}
+                                {suggestion.daysFromTarget === 1 && (
+                                  <Badge variant="secondary" className="text-xs">
+                                    Tomorrow
+                                  </Badge>
+                                )}
+                                {suggestion.daysFromTarget > 1 && (
+                                  <Badge variant="outline" className="text-xs">
+                                    {suggestion.daysFromTarget} days away
+                                  </Badge>
+                                )}
+                              </div>
+                              <div className="flex items-center gap-3 text-xs text-gray-600 dark:text-gray-400">
+                                <span className="flex items-center gap-1">
+                                  <CheckCircle className="h-3 w-3 text-green-600" />
+                                  {suggestion.availableCount}/{allPeople.length} available
+                                </span>
+                                {suggestion.availableCount === allPeople.length && (
+                                  <span className="text-green-600 font-medium">✨ Perfect match!</span>
+                                )}
+                              </div>
+                            </div>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className="text-blue-600 hover:text-blue-700 hover:bg-blue-100"
+                            >
+                              Select
+                            </Button>
+                          </div>
+                        </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div className="text-xs text-gray-500 dark:text-gray-400 py-4 text-center">
+                      No alternative time slots found in the next 7 days
+                    </div>
+                  )}
+                </div>
+
+                {/* Detailed availability */}
+                {showAvailabilityDetails && (
+                  <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-600 space-y-2">
+                    {availabilityData.statuses.map((status) => (
+                      <div key={status.person.id} className="flex items-center justify-between text-sm">
+                        <span>{status.person.name}</span>
+                        <div className="flex items-center gap-2">
+                          {getAvailabilityIcon(status.status)}
+                          <span className={cn("text-xs", getAvailabilityColor(status.status).split(" ")[0])}>
+                            {status.status === "available" && "Available"}
+                            {status.status === "partial" && "Partial"}
+                            {status.status === "busy" && "Busy"}
+                            {status.status === "unknown" && "Unknown"}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Summary */}
-        {selectedPeople.length > 0 && (
+        {(selectedPeople.length > 0 || selectedGroups.length > 0) && (
           <p className="text-sm text-gray-600 dark:text-gray-400">
-            {selectedPeople.length} person(s) will be invited to this event
+            {selectedPeople.length > 0 && `${selectedPeople.length} person(s)`}
+            {selectedPeople.length > 0 && selectedGroups.length > 0 && " and "}
+            {selectedGroups.length > 0 && `${selectedGroups.length} group(s)`}
+            {" "}will be invited to this event
             {availabilityData && (
               <span className="ml-2">
+                • {availabilityData.summary.total} total attendee{availabilityData.summary.total !== 1 ? 's' : ''}
                 • {availabilityData.summary.available} available
                 {availabilityData.summary.busy > 0 && (
                   <span className="text-red-600"> • {availabilityData.summary.busy} busy</span>

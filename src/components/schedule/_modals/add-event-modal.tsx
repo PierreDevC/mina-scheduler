@@ -18,7 +18,7 @@ import SelectDate from "@/components/schedule/_components/add-event-components/s
 import PeopleSelectorWithAvailability from "@/components/schedule/_components/add-event-components/people-selector-with-availability";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { EventFormData, eventSchema, Variant, Event, Person } from "@/types/index";
+import { EventFormData, eventSchema, Variant, Event, Person, Group } from "@/types/index";
 import { useScheduler } from "@/providers/schedular-provider";
 import { v4 as uuidv4 } from "uuid"; // Use UUID to generate event IDs
 import { Trash2 } from "lucide-react";
@@ -50,10 +50,11 @@ export default function AddEventModal({
     getEventColor(modalData?.variant || "primary")
   );
   const [selectedPeople, setSelectedPeople] = useState<Person[]>([]);
-  const [currentStartDate, setCurrentStartDate] = useState<Date>(() => 
+  const [selectedGroups, setSelectedGroups] = useState<Group[]>([]);
+  const [currentStartDate, setCurrentStartDate] = useState<Date>(() =>
     modalData?.startDate || new Date()
   );
-  const [currentEndDate, setCurrentEndDate] = useState<Date>(() => 
+  const [currentEndDate, setCurrentEndDate] = useState<Date>(() =>
     modalData?.endDate || new Date()
   );
 
@@ -85,6 +86,7 @@ export default function AddEventModal({
       variant: "primary",
       color: "blue",
       invitedPeople: [],
+      invitedGroups: [],
       isAllDay: false,
     },
   });
@@ -137,9 +139,11 @@ export default function AddEventModal({
         variant: modalData.variant || "primary",
         color: modalData.color || "blue",
         invitedPeople: modalData.invitedPeople || [],
+        invitedGroups: modalData.invitedGroups || [],
         isAllDay: modalData.isAllDay || false,
       });
       setSelectedPeople(modalData.invitedPeople || []);
+      setSelectedGroups(modalData.invitedGroups || []);
     }
   }, [modalData, reset]);
 
@@ -204,6 +208,7 @@ export default function AddEventModal({
       variant: formData.variant,
       description: formData.description,
       invitedPeople: selectedPeople,
+      invitedGroups: selectedGroups,
       isAllDay: formData.isAllDay,
     };
 
@@ -280,8 +285,8 @@ export default function AddEventModal({
 
               <SelectDate
                 data={{
-                  startDate: modalData?.startDate || new Date(),
-                  endDate: modalData?.endDate || new Date(),
+                  startDate: currentStartDate,
+                  endDate: currentEndDate,
                 }}
                 setValue={setValue}
               />
@@ -333,8 +338,19 @@ export default function AddEventModal({
                   setSelectedPeople(people);
                   setValue("invitedPeople", people);
                 }}
+                selectedGroups={selectedGroups}
+                onGroupsChange={(groups) => {
+                  setSelectedGroups(groups);
+                  setValue("invitedGroups", groups);
+                }}
                 eventStartDate={currentStartDate}
                 eventEndDate={currentEndDate}
+                onDateChange={(startDate, endDate) => {
+                  setCurrentStartDate(startDate);
+                  setCurrentEndDate(endDate);
+                  setValue("startDate", startDate);
+                  setValue("endDate", endDate);
+                }}
               />
 
               {/* Show selected attendees */}

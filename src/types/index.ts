@@ -16,6 +16,19 @@ export interface Person {
   department?: string;
 }
 
+// Define group type for group invitations
+export interface Group {
+  id: string;
+  name: string;
+  description: string;
+  members: Person[];
+  color: string;
+  role: string;
+  avatar?: string;
+  createdDate: string;
+  lastActivity: string;
+}
+
 // Define availability types
 export interface TimeSlot {
   startTime: string; // Format: "HH:MM"
@@ -47,6 +60,7 @@ export interface Event {
   endDate: Date;
   variant?: Variant;
   invitedPeople?: Person[];
+  invitedGroups?: Group[];
   isAllDay?: boolean;
 }
 
@@ -130,6 +144,19 @@ export const personSchema = z.object({
   department: z.string().optional(),
 });
 
+// Define Zod schema for group validation
+export const groupSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  description: z.string(),
+  members: z.array(personSchema),
+  color: z.string(),
+  role: z.string(),
+  avatar: z.string().optional(),
+  createdDate: z.string(),
+  lastActivity: z.string(),
+});
+
 // Define Zod schema for form validation
 export const eventSchema = z.object({
   title: z.string().nonempty("Event name is required"),
@@ -139,6 +166,7 @@ export const eventSchema = z.object({
   variant: z.enum(["primary", "danger", "success", "warning", "default"]),
   color: z.string().nonempty("Color selection is required"),
   invitedPeople: z.array(personSchema).optional(),
+  invitedGroups: z.array(groupSchema).optional(),
   isAllDay: z.boolean().optional(),
 });
 

@@ -13,37 +13,13 @@ import {
 } from "@/components/ui/dialog";
 import { Users, Plus, Crown, Shield, Eye, EyeIcon, Wrench } from "lucide-react";
 import { mockFriends } from "@/data/mockFriends";
-import { Person } from "@/types/index";
+import { Person, Group } from "@/types/index";
+import { mockGroups as importedMockGroups } from "@/data/mockGroups";
 import CreateGroupModal from "@/components/groups/_modals/create-group-modal";
 import EditGroupModal from "@/components/groups/_modals/edit-group-modal";
 
-// Define Group interface
-interface Group {
-  id: number;
-  name: string;
-  description: string;
-  members: Person[];
-  color: string;
-  role: string;
-  avatar: string;
-  createdDate: string;
-  lastActivity: string;
-}
-
-// Initial Coffee Only group
-const initialGroups: Group[] = [
-  {
-    id: 1,
-    name: "Coffee Only",
-    description: "Development team focused on building amazing applications",
-    members: mockFriends,
-    color: "bg-amber-500",
-    role: "admin",
-    avatar: "/api/placeholder/40/40",
-    createdDate: "2024-01-01",
-    lastActivity: "2024-01-15",
-  },
-];
+// Convert mockGroups to the format expected by this component (id as number)
+const initialGroups: Group[] = importedMockGroups;
 
 // Add online status and roles to friends data for group members
 const groupMembers: (Person & { online: boolean; role: string; joinDate: string })[] = mockFriends.map((friend, index) => ({
@@ -114,7 +90,7 @@ export default function GroupsView() {
 
   const handleCreateGroup = (groupData: any) => {
     const newGroup: Group = {
-      id: Date.now(), // Simple ID generation
+      id: Date.now().toString(), // Simple ID generation as string
       name: groupData.name,
       description: groupData.description,
       members: groupData.members,
@@ -138,7 +114,7 @@ export default function GroupsView() {
     console.log("Group updated:", updatedGroup);
   };
 
-  const handleDeleteGroup = (groupId: number) => {
+  const handleDeleteGroup = (groupId: string) => {
     setGroups(prevGroups => prevGroups.filter(group => group.id !== groupId));
     console.log("Group deleted:", groupId);
   };

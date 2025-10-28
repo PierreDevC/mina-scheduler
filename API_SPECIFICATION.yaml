@@ -1,0 +1,944 @@
+openapi: 3.0.3
+info:
+  title: Event Scheduling API with Intelligent Availability Management
+  description: |
+    REST API for a sophisticated event scheduling system with real-time availability checking,
+    smart time suggestions, and multi-participant coordination.
+  version: 1.0.0
+  contact:
+    name: API Support
+    email: support@example.com
+
+servers:
+  - url: http://localhost:8080/api/v1
+    description: Development server
+  - url: https://api.example.com/api/v1
+    description: Production server
+
+tags:
+  - name: Events
+    description: Event management operations
+  - name: Availability
+    description: User availability management and checking
+  - name: Groups
+    description: Group management operations
+  - name: Users
+    description: User operations
+
+security:
+  - BearerAuth: []
+
+paths:
+  # ==================== EVENTS ====================
+  /events:
+    get:
+      tags:
+        - Events
+      summary: Get events for a user
+      description: Retrieve all events for the authenticated user within a date range
+      parameters:
+        - name: startDate
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date-time
+          example: "2025-10-01T00:00:00Z"
+        - name: endDate
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date-time
+          example: "2025-10-31T23:59:59Z"
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          schema:
+            type: integer
+            default: 50
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  events:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Event'
+                  total:
+                    type: integer
+                  page:
+                    type: integer
+                  pageSize:
+                    type: integer
+
+    post:
+      tags:
+        - Events
+      summary: Create a new event
+      description: Create a new event with invited people and/or groups
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateEventRequest'
+      responses:
+        '201':
+          description: Event created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Event'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Conflict with existing event
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /events/{eventId}:
+    get:
+      tags:
+        - Events
+      summary: Get event by ID
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Event'
+        '404':
+          description: Event not found
+
+    put:
+      tags:
+        - Events
+      summary: Update an event
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateEventRequest'
+      responses:
+        '200':
+          description: Event updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Event'
+        '403':
+          description: Not authorized to update this event
+        '404':
+          description: Event not found
+
+    delete:
+      tags:
+        - Events
+      summary: Delete an event
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Event deleted successfully
+        '403':
+          description: Not authorized to delete this event
+        '404':
+          description: Event not found
+
+  # ==================== AVAILABILITY ====================
+  /availability/users/{userId}:
+    get:
+      tags:
+        - Availability
+      summary: Get user availability
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: User availability retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserAvailability'
+
+    put:
+      tags:
+        - Availability
+      summary: Update user availability
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateAvailabilityRequest'
+      responses:
+        '200':
+          description: Availability updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserAvailability'
+
+  /availability/check:
+    post:
+      tags:
+        - Availability
+      summary: Check availability for multiple people
+      description: |
+        Check if multiple users and/or groups are available for a specific time slot.
+        Returns detailed availability status for each person including conflicts.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AvailabilityCheckRequest'
+      responses:
+        '200':
+          description: Availability check completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AvailabilityCheckResponse'
+              example:
+                eventTime:
+                  startDate: "2025-10-15T14:00:00Z"
+                  endDate: "2025-10-15T15:00:00Z"
+                statuses:
+                  - person:
+                      id: "uuid-1"
+                      name: "John Doe"
+                      email: "john@example.com"
+                    status: "AVAILABLE"
+                    availableTimeSlots:
+                      - startTime: "14:00"
+                        endTime: "17:00"
+                  - person:
+                      id: "uuid-2"
+                      name: "Jane Smith"
+                      email: "jane@example.com"
+                    status: "BUSY"
+                    conflictReason: "Conflicting event: 'Team Standup'"
+                summary:
+                  total: 5
+                  available: 3
+                  busy: 1
+                  partial: 1
+                  unknown: 0
+
+  /availability/suggest-times:
+    post:
+      tags:
+        - Availability
+      summary: Get suggested meeting times
+      description: |
+        Get intelligent time suggestions based on participant availability.
+        The algorithm searches across multiple days and scores each time slot based on:
+        - Number of available participants
+        - Proximity to target date and time
+        Returns the top N best time slots.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TimeSuggestionRequest'
+      responses:
+        '200':
+          description: Time suggestions generated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeSuggestionResponse'
+              example:
+                suggestions:
+                  - date: "2025-10-15"
+                    time: "14:00"
+                    dateTime: "2025-10-15T14:00:00Z"
+                    dayName: "Tuesday"
+                    availableCount: 5
+                    totalParticipants: 5
+                    score: 95.5
+                    daysFromTarget: 0
+                    isPerfectMatch: true
+                  - date: "2025-10-15"
+                    time: "15:30"
+                    dateTime: "2025-10-15T15:30:00Z"
+                    dayName: "Tuesday"
+                    availableCount: 4
+                    totalParticipants: 5
+                    score: 88.3
+                    daysFromTarget: 0
+                    isPerfectMatch: false
+
+  # ==================== GROUPS ====================
+  /groups:
+    get:
+      tags:
+        - Groups
+      summary: Get all groups for user
+      responses:
+        '200':
+          description: Groups retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  groups:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Group'
+
+    post:
+      tags:
+        - Groups
+      summary: Create a new group
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateGroupRequest'
+      responses:
+        '201':
+          description: Group created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Group'
+
+  /groups/{groupId}:
+    get:
+      tags:
+        - Groups
+      summary: Get group by ID
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Group retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Group'
+
+    put:
+      tags:
+        - Groups
+      summary: Update a group
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateGroupRequest'
+      responses:
+        '200':
+          description: Group updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Group'
+
+    delete:
+      tags:
+        - Groups
+      summary: Delete a group
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Group deleted successfully
+
+  /groups/{groupId}/members:
+    post:
+      tags:
+        - Groups
+      summary: Add member to group
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userId:
+                  type: string
+                  format: uuid
+                role:
+                  type: string
+                  enum: [ADMIN, MEMBER]
+      responses:
+        '201':
+          description: Member added successfully
+
+    delete:
+      tags:
+        - Groups
+      summary: Remove member from group
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: userId
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Member removed successfully
+
+  # ==================== USERS ====================
+  /users/search:
+    get:
+      tags:
+        - Users
+      summary: Search users
+      parameters:
+        - name: query
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Users found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  users:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/User'
+
+# ==================== COMPONENTS ====================
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    # ==================== EVENT SCHEMAS ====================
+    Event:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        description:
+          type: string
+        startDate:
+          type: string
+          format: date-time
+        endDate:
+          type: string
+          format: date-time
+        variant:
+          type: string
+          enum: [PRIMARY, DANGER, SUCCESS, WARNING, DEFAULT]
+        isAllDay:
+          type: boolean
+        organizer:
+          $ref: '#/components/schemas/User'
+        invitedPeople:
+          type: array
+          items:
+            $ref: '#/components/schemas/User'
+        invitedGroups:
+          type: array
+          items:
+            $ref: '#/components/schemas/Group'
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CreateEventRequest:
+      type: object
+      required:
+        - title
+        - startDate
+        - endDate
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 255
+        description:
+          type: string
+          maxLength: 5000
+        startDate:
+          type: string
+          format: date-time
+        endDate:
+          type: string
+          format: date-time
+        variant:
+          type: string
+          enum: [PRIMARY, DANGER, SUCCESS, WARNING, DEFAULT]
+          default: PRIMARY
+        isAllDay:
+          type: boolean
+          default: false
+        invitedPeople:
+          type: array
+          items:
+            type: string
+            format: uuid
+        invitedGroups:
+          type: array
+          items:
+            type: string
+            format: uuid
+
+    UpdateEventRequest:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        startDate:
+          type: string
+          format: date-time
+        endDate:
+          type: string
+          format: date-time
+        variant:
+          type: string
+          enum: [PRIMARY, DANGER, SUCCESS, WARNING, DEFAULT]
+        isAllDay:
+          type: boolean
+        invitedPeople:
+          type: array
+          items:
+            type: string
+            format: uuid
+        invitedGroups:
+          type: array
+          items:
+            type: string
+            format: uuid
+
+    # ==================== AVAILABILITY SCHEMAS ====================
+    UserAvailability:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        timezone:
+          type: string
+          example: "America/New_York"
+        availabilitySlots:
+          type: array
+          items:
+            $ref: '#/components/schemas/AvailabilitySlot'
+        lastUpdated:
+          type: string
+          format: date-time
+
+    AvailabilitySlot:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        dayOfWeek:
+          type: integer
+          minimum: 0
+          maximum: 6
+          description: 0=Sunday, 1=Monday, ..., 6=Saturday
+        isRecurring:
+          type: boolean
+        specificDate:
+          type: string
+          format: date
+          nullable: true
+        timeSlots:
+          type: array
+          items:
+            $ref: '#/components/schemas/TimeSlot'
+
+    TimeSlot:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        startTime:
+          type: string
+          pattern: '^([0-1][0-9]|2[0-3]):[0-5][0-9]$'
+          example: "09:00"
+        endTime:
+          type: string
+          pattern: '^([0-1][0-9]|2[0-3]):[0-5][0-9]$'
+          example: "17:00"
+
+    UpdateAvailabilityRequest:
+      type: object
+      properties:
+        timezone:
+          type: string
+        availabilitySlots:
+          type: array
+          items:
+            type: object
+            properties:
+              dayOfWeek:
+                type: integer
+                minimum: 0
+                maximum: 6
+              isRecurring:
+                type: boolean
+              specificDate:
+                type: string
+                format: date
+              timeSlots:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    startTime:
+                      type: string
+                    endTime:
+                      type: string
+
+    AvailabilityCheckRequest:
+      type: object
+      required:
+        - startDate
+        - endDate
+      properties:
+        userIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+        groupIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+        startDate:
+          type: string
+          format: date-time
+        endDate:
+          type: string
+          format: date-time
+
+    AvailabilityCheckResponse:
+      type: object
+      properties:
+        eventTime:
+          type: object
+          properties:
+            startDate:
+              type: string
+              format: date-time
+            endDate:
+              type: string
+              format: date-time
+        statuses:
+          type: array
+          items:
+            $ref: '#/components/schemas/AvailabilityStatus'
+        summary:
+          type: object
+          properties:
+            total:
+              type: integer
+            available:
+              type: integer
+            busy:
+              type: integer
+            partial:
+              type: integer
+            unknown:
+              type: integer
+
+    AvailabilityStatus:
+      type: object
+      properties:
+        person:
+          $ref: '#/components/schemas/User'
+        status:
+          type: string
+          enum: [AVAILABLE, BUSY, PARTIAL, UNKNOWN]
+        conflictReason:
+          type: string
+          nullable: true
+        availableTimeSlots:
+          type: array
+          items:
+            $ref: '#/components/schemas/TimeSlot'
+
+    TimeSuggestionRequest:
+      type: object
+      required:
+        - targetDate
+        - durationMinutes
+      properties:
+        userIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+        groupIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+        targetDate:
+          type: string
+          format: date-time
+        durationMinutes:
+          type: integer
+          minimum: 15
+          maximum: 480
+          default: 60
+        maxSuggestions:
+          type: integer
+          minimum: 1
+          maximum: 10
+          default: 5
+        daysToSearch:
+          type: integer
+          minimum: 1
+          maximum: 30
+          default: 7
+
+    TimeSuggestionResponse:
+      type: object
+      properties:
+        suggestions:
+          type: array
+          items:
+            $ref: '#/components/schemas/TimeSuggestion'
+
+    TimeSuggestion:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+        time:
+          type: string
+          pattern: '^([0-1][0-9]|2[0-3]):[0-5][0-9]$'
+        dateTime:
+          type: string
+          format: date-time
+        dayName:
+          type: string
+        availableCount:
+          type: integer
+        totalParticipants:
+          type: integer
+        score:
+          type: number
+          format: double
+        daysFromTarget:
+          type: integer
+        isPerfectMatch:
+          type: boolean
+        details:
+          type: array
+          items:
+            $ref: '#/components/schemas/AvailabilityStatus'
+
+    # ==================== GROUP SCHEMAS ====================
+    Group:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        color:
+          type: string
+        avatar:
+          type: string
+        members:
+          type: array
+          items:
+            $ref: '#/components/schemas/GroupMember'
+        createdDate:
+          type: string
+          format: date
+        lastActivity:
+          type: string
+          format: date
+
+    GroupMember:
+      type: object
+      properties:
+        user:
+          $ref: '#/components/schemas/User'
+        role:
+          type: string
+          enum: [ADMIN, MEMBER]
+        joinedAt:
+          type: string
+          format: date-time
+
+    CreateGroupRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        description:
+          type: string
+          maxLength: 1000
+        color:
+          type: string
+        memberIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+
+    UpdateGroupRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        color:
+          type: string
+
+    # ==================== USER SCHEMAS ====================
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        avatar:
+          type: string
+        department:
+          type: string
+
+    # ==================== ERROR SCHEMAS ====================
+    ErrorResponse:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        status:
+          type: integer
+        error:
+          type: string
+        message:
+          type: string
+        path:
+          type: string
+
+
