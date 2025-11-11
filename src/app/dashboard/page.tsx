@@ -95,7 +95,7 @@ export default function AppPage() {
               initial="initial"
               animate="in"
               exit="out"
-              className={`py-8 md:pb-8 ${isNavbarAtBottom ? 'pb-20' : 'pb-8'}`}
+              className="py-8 pb-24 md:pb-8"
             >
               {renderActiveView()}
             </motion.div>
