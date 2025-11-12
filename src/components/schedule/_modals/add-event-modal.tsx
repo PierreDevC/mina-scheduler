@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 import { useModal } from "@/providers/modal-context";
 import SelectDate from "@/components/schedule/_components/add-event-components/select-date";
@@ -219,6 +220,10 @@ export default function AddEventModal({
       if (onAddEvent) {
         onAddEvent(newEvent);
       }
+      // Show success toast
+      toast.success(`Event "${formData.title}" created successfully`, {
+        duration: 3000,
+      });
     } else {
       // Updating existing event
       const updatedEvent = { ...newEvent, id: typedData.id };
@@ -227,6 +232,10 @@ export default function AddEventModal({
       if (onUpdateEvent) {
         onUpdateEvent(updatedEvent);
       }
+      // Show success toast
+      toast.success(`Event "${formData.title}" updated successfully`, {
+        duration: 3000,
+      });
     }
     setClose(); // Close the modal after submission
   };

@@ -15,6 +15,7 @@ import {
 import { UserButton, SignedIn, SignedOut, SignInButton, useUser } from "@clerk/nextjs";
 import NotificationModal from "@/components/notifications/notification-modal";
 import FullNotificationsModal from "@/components/notifications/full-notifications-modal";
+import { usePreferences } from "@/contexts/preferences-context";
 
 interface NavItem {
   id: string;
@@ -75,6 +76,7 @@ export default function MainNavbar({ activeTab, onTabChange, className, onNavbar
   const [isFullNotificationModalOpen, setIsFullNotificationModalOpen] = useState(false);
   const { scrollY } = useScroll();
   const { user } = useUser();
+  const { animationsEnabled } = usePreferences();
 
   useEffect(() => {
     const unsubscribe = scrollY.on("change", (latest) => {
@@ -104,9 +106,9 @@ export default function MainNavbar({ activeTab, onTabChange, className, onNavbar
 
         {/* Navigation centrale */}
         <motion.div
-          initial={{ opacity: 0, y: -20 }}
+          initial={animationsEnabled ? { opacity: 0, y: -20 } : { opacity: 1, y: 0 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease: "easeOut" }}
+          transition={animationsEnabled ? { duration: 0.5, ease: "easeOut" } : { duration: 0 }}
           className="bg-white dark:bg-gray-800 rounded-full p-3 shadow-xl border border-gray-200 dark:border-gray-600"
         >
           <div className="flex items-center space-x-1">
@@ -120,10 +122,10 @@ export default function MainNavbar({ activeTab, onTabChange, className, onNavbar
                     ? "text-white hover:text-white"
                     : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
                 )}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+                whileHover={animationsEnabled ? { scale: 1.05 } : {}}
+                whileTap={animationsEnabled ? { scale: 0.95 } : {}}
               >
-                {activeTab === item.id && (
+                {activeTab === item.id && animationsEnabled && (
                   <motion.div
                     layoutId="activeTabDesktop"
                     className="absolute inset-0 bg-black rounded-full"
@@ -133,6 +135,9 @@ export default function MainNavbar({ activeTab, onTabChange, className, onNavbar
                       damping: 30,
                     }}
                   />
+                )}
+                {activeTab === item.id && !animationsEnabled && (
+                  <div className="absolute inset-0 bg-black rounded-full" />
                 )}
                 <div className="relative z-10 flex items-center space-x-2">
                   {item.icon}
@@ -198,9 +203,9 @@ export default function MainNavbar({ activeTab, onTabChange, className, onNavbar
       <div className="sticky top-0 z-40 md:hidden bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm border-b border-gray-200 dark:border-gray-600">
         <motion.div
           className="flex items-center justify-between px-4 py-3"
-          initial={{ opacity: 0, y: -10 }}
+          initial={animationsEnabled ? { opacity: 0, y: -10 } : { opacity: 1, y: 0 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
+          transition={animationsEnabled ? { duration: 0.3 } : { duration: 0 }}
         >
           <h1 className="text-lg font-bold text-gray-900 dark:text-white">
             CalendApp
@@ -245,9 +250,9 @@ export default function MainNavbar({ activeTab, onTabChange, className, onNavbar
       {/* Mobile Bottom Navigation Bar - Fixed at Bottom */}
       <div className="md:hidden">
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={animationsEnabled ? { opacity: 0, y: 20 } : { opacity: 1, y: 0 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease: "easeOut" }}
+          transition={animationsEnabled ? { duration: 0.5, ease: "easeOut" } : { duration: 0 }}
           className="fixed bottom-0 left-0 right-0 z-[100] mobile-safe-area"
         >
           <div className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-lg border-t border-gray-200 dark:border-gray-600 shadow-2xl">
@@ -262,10 +267,10 @@ export default function MainNavbar({ activeTab, onTabChange, className, onNavbar
                       ? "text-white"
                       : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
                   )}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+                  whileHover={animationsEnabled ? { scale: 1.05 } : {}}
+                  whileTap={animationsEnabled ? { scale: 0.95 } : {}}
                 >
-                  {activeTab === item.id && (
+                  {activeTab === item.id && animationsEnabled && (
                     <motion.div
                       layoutId="activeTabMobile"
                       className="absolute inset-0 bg-black dark:bg-white/10 rounded-xl"
@@ -276,12 +281,15 @@ export default function MainNavbar({ activeTab, onTabChange, className, onNavbar
                       }}
                     />
                   )}
+                  {activeTab === item.id && !animationsEnabled && (
+                    <div className="absolute inset-0 bg-black dark:bg-white/10 rounded-xl" />
+                  )}
                   <div className="relative z-10 flex flex-col items-center space-y-1">
                     <motion.div
-                      animate={{
+                      animate={animationsEnabled ? {
                         scale: activeTab === item.id ? 1.1 : 1,
-                      }}
-                      transition={{ duration: 0.2 }}
+                      } : {}}
+                      transition={animationsEnabled ? { duration: 0.2 } : { duration: 0 }}
                     >
                       {item.icon}
                     </motion.div>

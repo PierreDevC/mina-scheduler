@@ -37,6 +37,7 @@ import {
   createEmptyAvailabilitySlot,
   availabilityPresets
 } from "@/data/mockAvailability";
+import { toast } from "sonner";
 
 const containerVariants = {
   hidden: { opacity: 0, y: 20 },
@@ -194,6 +195,9 @@ export default function AvailabilityView() {
     // In a real app, this would save to backend
     console.log("Saving availability:", availability);
     setIsModified(false);
+    toast.success("Availability saved successfully", {
+      duration: 3000,
+    });
   };
 
   const handleReset = () => {
@@ -427,6 +431,7 @@ export default function AvailabilityView() {
             <Sparkles className="h-5 w-5" />
             Preset Templates
           </h3>
+          <p className="text-sm text-gray-500 mb-4">Select a preset template to apply to your availability</p>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             {Object.entries(availabilityPresets).map(([key, preset]) => (
               <Button

@@ -3,7 +3,9 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import { usePreferences } from "@/contexts/preferences-context";
 import { Card } from "@/components/ui/card";
+import { toast } from "sonner";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -119,6 +121,7 @@ const syncIntegrations = [
 
 export default function SettingsView() {
   const [activeSection, setActiveSection] = useState("profile");
+  const { animationsEnabled, setAnimationsEnabled } = usePreferences();
   const [settings, setSettings] = useState({
     // Profile settings
     name: mockUser.name,
@@ -126,7 +129,7 @@ export default function SettingsView() {
     bio: "Passionate about project management and digital innovation.",
     timezone: mockUser.timezone,
     language: "English",
-    
+
     // Notifications
     emailNotifications: true,
     pushNotifications: true,
@@ -134,26 +137,24 @@ export default function SettingsView() {
     eventReminders: true,
     teamUpdates: true,
     weeklyDigest: true,
-    
+
     // Calendar preferences
     weekStartsOn: "monday",
     defaultView: "week",
     showWeekends: true,
     timeFormat: "24h",
     autoAcceptMeetings: false,
-    
+
     // Privacy & Security
     profileVisibility: "team",
     calendarsVisibility: "private",
     twoFactorAuth: false,
     sessionTimeout: "30",
-    
+
     // Appearance
     theme: "system",
     accentColor: "blue",
-    compactMode: false,
-    animations: true,
-    
+
     // Data & Privacy
     dataExport: false,
     analytics: true,
@@ -614,23 +615,17 @@ export default function SettingsView() {
           
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label>Compact mode</Label>
-              <p className="text-sm text-gray-500">Denser interface with less spacing</p>
-            </div>
-            <Switch
-              checked={settings.compactMode}
-              onCheckedChange={(checked) => updateSetting("compactMode", checked)}
-            />
-          </div>
-          
-          <div className="flex items-center justify-between">
-            <div className="space-y-0.5">
               <Label>Animations</Label>
-              <p className="text-sm text-gray-500">Transitions and animations in the interface</p>
+              <p className="text-sm text-gray-500">Enable to have a more interactive interface</p>
             </div>
             <Switch
-              checked={settings.animations}
-              onCheckedChange={(checked) => updateSetting("animations", checked)}
+              checked={animationsEnabled}
+              onCheckedChange={(checked) => {
+                setAnimationsEnabled(checked);
+                toast(checked ? "Animations enabled" : "Animations disabled", {
+                  duration: 2000,
+                });
+              }}
             />
           </div>
         </div>

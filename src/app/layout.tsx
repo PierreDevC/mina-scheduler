@@ -3,6 +3,8 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { SchedulerProvider } from "@/providers/schedular-provider";
 import { ClerkProvider } from "@clerk/nextjs";
+import { PreferencesProvider } from "@/contexts/preferences-context";
+import { Toaster } from "@/components/ui/sonner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -57,7 +59,10 @@ export default function RootLayout({
         <body
           className={`${geistSans.variable} ${geistMono.variable} antialiased font-[family-name:var(--font-geist-sans)]`}
         >
-          <SchedulerProvider weekStartsOn="monday">{children}</SchedulerProvider>
+          <PreferencesProvider>
+            <SchedulerProvider weekStartsOn="monday">{children}</SchedulerProvider>
+          </PreferencesProvider>
+          <Toaster position="bottom-right" />
         </body>
       </html>
     </ClerkProvider>

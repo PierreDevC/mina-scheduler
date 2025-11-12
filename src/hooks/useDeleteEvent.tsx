@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import DeleteEventModal from "@/components/ui/delete-event-modal";
+import { toast } from "sonner";
 
 interface EventToDelete {
   id: string;
@@ -33,6 +34,12 @@ export const useDeleteEvent = ({ onDelete, onCancel, onSuccess }: UseDeleteEvent
       console.log("Converting ID to string:", idToDelete);
 
       onDelete(idToDelete);
+
+      // Show success toast with event name
+      toast.success(`Event "${eventToDelete.title}" deleted successfully`, {
+        duration: 3000,
+      });
+
       setIsDeleteModalOpen(false);
       setEventToDelete(null);
 
